@@ -12,3 +12,9 @@ void GameBoard::printBoard()
 			std::cout << board[i] << " ";
 	}
 }
+
+void GameBoard::updateBoard(int start, int end)
+{
+	//board[start] = 'E';
+	//board[end] = pieceType?
+}

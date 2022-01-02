@@ -1,9 +1,11 @@
 #pragma once
 #include <iostream>
 #include <array>
+#include "GamePiece.h"
 
 class GameBoard {
 	public:
+		GameBoard():pieceBoard(makePieceBoard()) {}
 		std::array<char, 64> board = 
 		{
 			'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R', //(0-7)
@@ -15,8 +17,41 @@ class GameBoard {
 			'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', //(48-55)
 			'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'  //(56-63)
 		};
+
 		//keep track where the pieces are
-		void updateBoard();
+		std::array<GamePiece, 32> pieceBoard;
+		
+
+		void updateBoard(int start, int end);
 		void printBoard();
+	private:
+		std::array<GamePiece, 32> makePieceBoard() 
+		{
+			std::array<GamePiece, 32> pBoard;
+			int pieceIndex = 0;
+			for (int i = 0; i < board.size(); i++)
+			{
+				char tempPiece = board[i];
+				if (tempPiece != 'E') 
+				{
+					pBoard[pieceIndex].pieceType = g_pieceMapConverter[tempPiece];
+					pBoard[pieceIndex].hasMoved = false;
+					pBoard[pieceIndex].hasDoubleMoved = false;
+					if (i < 16)
+					{
+						pBoard[pieceIndex].isWhite = false;
+					}
+					else
+					{
+						pBoard[pieceIndex].isWhite = true;
+					}
+					pBoard[pieceIndex].index = i;
+					pieceIndex++;
+				}
+			}
+			return pBoard;
+		}
 };
+
+
 
