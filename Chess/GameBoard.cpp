@@ -1,4 +1,5 @@
 #include "GameBoard.h"
+#include "Movement.h"
 
 void GameBoard::printBoard()
 {	
@@ -15,6 +16,16 @@ void GameBoard::printBoard()
 
 void GameBoard::updateBoard(int start, int end)
 {
-	//board[start] = 'E';
-	//board[end] = pieceType?
+	pieceBoard[start].index = end;
+	pieceBoard[start].hasMoved = true;
+	if (pieceBoard[start].pieceType == piece::PAWN && pieceBoard[start + 16].index == pieceBoard[end].index)
+	{
+		pieceBoard[start].hasDoubleMoved = true;
+	}
+
+	//pieces that get taken?
+
+	//updating the board that will be printed
+	board[start] = 'E';
+	board[end] = pieceBoard[start].pieceType;
 }

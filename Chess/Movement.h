@@ -1,27 +1,28 @@
 #pragma once
-#include <tuple>
+#include <utility>
 #include <string>
 #include <iostream>
+#include "GameBoard.h"
 
 class Movement 
 {
 	public:
-		Movement(std::array<char, 64>& gameBoard) :m_board(gameBoard) {}
+		Movement(GameBoard& gameBoard) :m_board(gameBoard) {}
 
-		void enPassant();
+		bool enPassant(int start, int end);
 		void castle();
-		void promotion();
+		bool promotion(int start, int end);
 		
-		bool pawnMove(); //remember to include double move
-		bool knightMove();
-		bool bishopMove();
-		bool rookMove();
-		bool queenMove();
-		bool kingMove();
+		bool pawnMove(int start, int end); //remember to include double move
+		bool knightMove(int start, int end);
+		bool bishopMove(int start, int end);
+		bool rookMove(int start, int end);
+		bool queenMove(int start, int end);
+		bool kingMove(int start, int end);
 		
-		std::tuple <int, int> getUserInput(); 
-		bool isValidMove();
+		std::pair <int, int> getUserInput(); 
+		bool isValidMove(int start, int end);
 		int convertUserInput(std::string UserInput);
 private:
-	std::array<char, 64>& m_board;
+	GameBoard& m_board;
 };

@@ -5,10 +5,10 @@
 class GameState 
 {
 	public:
-		GameState() : board(), moves(board.board) {}
+		GameState() : boardInstance(), moves(boardInstance) {}
 		bool isCheck();
 		bool isDraw();
-		GameBoard board;
+		GameBoard boardInstance;
 		Movement moves;
 		bool isCheckmate;
 		
