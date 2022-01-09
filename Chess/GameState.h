@@ -6,7 +6,7 @@ class GameState
 {
 	public:
 		GameState() : boardInstance(), moves(boardInstance) {}
-		bool isCheck();
+		//bool isCheck();
 		bool isDraw();
 		GameBoard boardInstance;
 		Movement moves;

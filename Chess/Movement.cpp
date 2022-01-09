@@ -261,11 +261,13 @@ bool Movement::knightMove(int start, int end)
 
 bool Movement::bishopMove(int start, int end)
 {
-	int tilesToTravelByNine = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 9); //should equal 3 27 to 54
-	int tilesToTravelBySeven = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 7); //should equal 2 27 to 41
+	//NW decr by 9, SE inc by 9, NE decr by 7, SW inc by 7
+	int tilesToTravelByNine = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 9);
+	int tilesToTravelBySeven = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 7); 
 
 	bool chooseNine = false;
 	bool chooseSeven = false;
+	bool emptyDiag = false;
 
 	if (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 9) == 0)
 	{
@@ -276,56 +278,310 @@ bool Movement::bishopMove(int start, int end)
 		chooseSeven = true;
 	}
 
-
-	//index starting at 27 can go to:  (max is 7 tiles from corner to corner) 27 to 54  (27, 36, 45, 54)
-	//NW (18, 9, 0) decr by 9
-	//NE (20, 13, 6) decr by 7
-	//SW (34, 41, 48) inc by 7
-	//SE (36, 45, 54, 63) inc by 9
-
 	if (chooseNine)
 	{
-		for (int i = 0; i < tilesToTravelByNine; i++)
+		//South East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		if ((m_board.pieceBoard[start].index + (9 * tilesToTravelByNine) == m_board.pieceBoard[end].index) &&
+			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			(isCheck() == false))
 		{
-
+			//Used when the bishop only has to move one tile, to set empty diag properly
+			if (tilesToTravelByNine == 1) 
+			{
+				emptyDiag == true;
+			}
+			else 
+			{
+				//checking to make sure all spaces between start and end are empty
+				for (int i = 1; i < tilesToTravelByNine; i++)
+				{
+					if (m_board.pieceBoard[start + (tilesToTravelByNine * i)].pieceType == piece::EMPTY)
+					{
+						emptyDiag = true;
+					}
+					else
+					{
+						emptyDiag = false;
+						break;
+					}
+				}
+			}
+			
 		}
+		//North West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		else if ((m_board.pieceBoard[start].index - (9 * tilesToTravelByNine) == m_board.pieceBoard[end].index) &&
+			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			(isCheck() == false))
+			 {
+				 //Used when the bishop only has to move one tile, to set empty diag properly
+				 if (tilesToTravelByNine == 1)
+				 {
+					 emptyDiag == true;
+				 }
+				 else
+				 {
+					 for (int i = 1; i < tilesToTravelByNine; i++)
+					 {
+						 if (m_board.pieceBoard[start - (tilesToTravelByNine * i)].pieceType == piece::EMPTY)
+						 {
+							 emptyDiag = true;
+						 }
+						 else
+						 {
+							 emptyDiag = false;
+							 break;
+						 }
+					 }
+				 }
+			 }
 	}
 	
 	else if (chooseSeven) 
 	{
-		for (int i = 0; i < tilesToTravelBySeven; i++)
+		//South West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		if ((m_board.pieceBoard[start].index + (7 * tilesToTravelBySeven) == m_board.pieceBoard[end].index) &&
+			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			(isCheck() == false))
 		{
-
-
+			//Used when the bishop only has to move one tile, to set empty diag properly
+			if (tilesToTravelBySeven == 1)
+			{
+				emptyDiag == true;
+			}
+			else
+			{
+				//checking to make sure all spaces between start and end are empty
+				for (int i = 1; i < tilesToTravelBySeven; i++)
+				{
+					if (m_board.pieceBoard[start + (tilesToTravelBySeven * i)].pieceType == piece::EMPTY)
+					{
+						emptyDiag = true;
+					}
+					else
+					{
+						emptyDiag = false;
+						break;
+					}
+				}
+			}
 		}
+		//North East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		else if ((m_board.pieceBoard[start].index - (7 * tilesToTravelBySeven) == m_board.pieceBoard[end].index) &&
+				((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+				(isCheck() == false))
+			 {
+				  //Used when the bishop only has to move one tile, to set empty diag properly
+				  if (tilesToTravelBySeven == 1)
+				  {
+				 	 emptyDiag == true;
+				  }
+				  else
+				  {
+			
+					  //checking to make sure all spaces between start and end are empty
+					  for (int i = 1; i < tilesToTravelBySeven; i++)
+					  {
+						  if (m_board.pieceBoard[start - (tilesToTravelBySeven * i)].pieceType == piece::EMPTY)
+						  {
+							  emptyDiag = true;
+						  }
+						  else
+						  {
+							  emptyDiag = false;
+							  break;
+						  }
+					  }
+				  }
+			 }
 	}
 	
-	return false;
-
+	if (emptyDiag) 
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool Movement::rookMove(int start, int end)
 {
-	
-	//index starting at 0 can go to: (max is 7 tiles from corner to corner)
-	//S (8, 16, 24, 32, 40, 48, 56) incr by 8
-	//N decr by 8
-	//E incr by 1
-	//W decr by 1
-	return false;
+	//N decr by 8, E inc by 1, S incr by 8, W decr by 1
+	int tilesToTravelByEight = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 8);
+	int tilesToTravelByOne = (m_board.pieceBoard[end].index - m_board.pieceBoard[start].index);
+
+	bool chooseEight = false;
+	bool emptyHorizontal = false;
+	bool emptyVertical = false;
+
+	if (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 8) == 0)
+	{
+		chooseEight = true;
+	}
+
+	if (chooseEight)
+	{
+		//South Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		if ((m_board.pieceBoard[start].index + (8 * tilesToTravelByEight) == m_board.pieceBoard[end].index) &&
+			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			(isCheck() == false))
+		{
+			//Used when the Rook only has to move one tile, to set emptyVertical properly
+			if (tilesToTravelByEight == 1)
+			{
+				emptyVertical == true;
+			}
+			else
+			{
+				//checking to make sure all spaces between start and end are empty
+				for (int i = 1; i < tilesToTravelByEight; i++)
+				{
+					if (m_board.pieceBoard[start + (tilesToTravelByEight * i)].pieceType == piece::EMPTY)
+					{
+						emptyVertical = true;
+					}
+					else
+					{
+						emptyVertical = false;
+						break;
+					}
+				}
+			}
+			
+		}
+		//North Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		else if ((m_board.pieceBoard[start].index - (8 * tilesToTravelByEight) == m_board.pieceBoard[end].index) &&
+				((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+				(isCheck() == false))
+			 {
+				 //Used when the Rook only has to move one tile, to set emptyVertical properly
+				 if (tilesToTravelByEight == 1)
+				 {
+					 emptyVertical == true;
+				 }
+				 else 
+				 {
+					 for (int i = 1; i < tilesToTravelByEight; i++)
+					 {
+						 if (m_board.pieceBoard[start - (tilesToTravelByEight * i)].pieceType == piece::EMPTY)
+						 {
+							 emptyVertical = true;
+						 }
+						 else
+						 {
+							 emptyVertical = false;
+							 break;
+						 }
+					 }
+				 }
+			 }
+	}
+
+	else
+	{
+		//West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		if ((m_board.pieceBoard[start].index - (1 * tilesToTravelByOne) == m_board.pieceBoard[end].index) &&
+			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			(isCheck() == false))
+		{
+			//Used when the Rook only has to move one tile, to set emptyHorizontal properly
+			if (tilesToTravelByOne == 1)
+			{
+				emptyHorizontal == true;
+			}
+			else 
+			{
+				//checking to make sure all spaces between start and end are empty
+				for (int i = 1; i < tilesToTravelByOne; i++)
+				{
+					if (m_board.pieceBoard[start - (tilesToTravelByOne * i)].pieceType == piece::EMPTY)
+					{
+						emptyHorizontal = true;
+					}
+					else
+					{
+						emptyHorizontal = false;
+						break;
+					}
+				}
+			}
+			
+		}
+		//East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
+		else if ((m_board.pieceBoard[start].index + (1 * tilesToTravelByOne) == m_board.pieceBoard[end].index) &&
+			 ((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
+			 (isCheck() == false))
+			 {
+				//Used when the Rook only has to move one tile, to set emptyHorizontal properly
+				if (tilesToTravelByOne == 1)
+				{
+					emptyHorizontal == true;
+				}
+				else 
+				{
+					//checking to make sure all spaces between start and end are empty
+					for (int i = 1; i < tilesToTravelByOne; i++)
+					{
+						if (m_board.pieceBoard[start + (tilesToTravelByOne * i)].pieceType == piece::EMPTY)
+						{
+							emptyHorizontal = true;
+						}
+						else
+						{
+							emptyHorizontal = false;
+							break;
+						}
+					}
+				}
+			 }
+	}
+
+	if (emptyHorizontal || emptyVertical)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
 
 }
 
-bool Movement::queenMove(int start, int end)
+bool Movement::queenMove(int start, int end) 
 {
-
-	//combine rook and bishop move?
+	if ((((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 9) == 0) || (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 7) == 0))
+	{
+		if (bishopMove(start, end)) 
+		{
+			return true;
+		}
+		//needed for unique cases such as 40 to 47 where bishop would get flagged but it really is moving as a rook
+		else if (rookMove(start, end)) 
+		{
+			return true;
+		}
+	}
+	else
+	{
+		if(rookMove(start, end))
+		{
+			return true;
+		}
+	}
 	return false;
-
 }
 
 bool Movement::kingMove(int start, int end)
 {
+	//Add castle
+	// King side castling - king goes two spaces to E and rook goes two spaces to W
+	// Queen side castling - King goes two spaces to W and rook goes three spaces to E
+	// make sure to manually update rook old tile to Empty
+	// Castle requirements: 
+	// king has not moved && chosen rook has not moved, empty tiles between king and rook, king is not in check,
+	// the king must not pass through a square that is under attack and the king must not end up in check
 	//NW decr by 9
 	//N decr by 8
 	//NE decr by 7
@@ -339,3 +595,7 @@ bool Movement::kingMove(int start, int end)
 	return false;
 }
 
+bool Movement::isCheck() 
+{
+	return true;
+}

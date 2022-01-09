@@ -12,8 +12,10 @@ class Movement
 		bool enPassant(int start, int end);
 		void castle();
 		bool promotion(int start, int end);
+		bool isCheck();
 		
-		bool pawnMove(int start, int end); //remember to include double move
+		bool isValidMove(int start, int end);
+		bool pawnMove(int start, int end); 
 		bool knightMove(int start, int end);
 		bool bishopMove(int start, int end);
 		bool rookMove(int start, int end);
@@ -21,8 +23,8 @@ class Movement
 		bool kingMove(int start, int end);
 		
 		std::pair <int, int> getUserInput(); 
-		bool isValidMove(int start, int end);
 		int convertUserInput(std::string UserInput);
+
 private:
 	GameBoard& m_board;
 };
