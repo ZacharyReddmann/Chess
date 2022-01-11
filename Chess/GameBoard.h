@@ -22,7 +22,7 @@ class GameBoard {
 		std::array<GamePiece, 32> pieceBoard;
 		
 
-		void updateBoard(int start, int end);
+		void updateBoard(int pStart, int start, int pEnd, int end);
 		void printBoard();
 	private:
 		std::array<GamePiece, 32> makePieceBoard() 

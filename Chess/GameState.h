@@ -8,6 +8,7 @@ class GameState
 		GameState() : boardInstance(), moves(boardInstance) {}
 		//bool isCheck();
 		bool isDraw();
+		void runGame();
 		GameBoard boardInstance;
 		Movement moves;
 		bool isCheckmate;

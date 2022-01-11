@@ -11,7 +11,7 @@ class Movement
 
 		bool enPassant(int start, int end);
 		void castle();
-		bool promotion(int start, int end);
+		bool promotion(int start);
 		bool isCheck();
 		
 		bool isValidMove(int start, int end);
@@ -24,6 +24,8 @@ class Movement
 		
 		std::pair <int, int> getUserInput(); 
 		int convertUserInput(std::string UserInput);
+		GamePiece findPBoardElement(int startTile);
+		int getPBoardIndexofElement(int index);
 
 private:
 	GameBoard& m_board;

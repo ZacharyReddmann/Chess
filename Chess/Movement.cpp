@@ -1,6 +1,34 @@
 #include "Movement.h"
 #include "GamePiece.h"
-#include "GameBoard.h"
+
+
+//Find the correct index for pieceBoard
+GamePiece Movement::findPBoardElement(int startTile) 
+{
+	for (int i = 0; i < m_board.pieceBoard.size(); i++)
+	{
+		if (startTile == m_board.pieceBoard[i].index)
+		{
+			return m_board.pieceBoard[i];
+		}
+	}
+	return { piece::EMPTY, true, true, true, -1 };
+}
+
+
+//Find the correct index for start in updateBoard
+int Movement::getPBoardIndexofElement(int index)
+{
+	for (int i = 0; i < m_board.pieceBoard.size(); i++)
+	{
+		if (index == m_board.pieceBoard[i].index)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 
 //Convert user input to index value
 int Movement::convertUserInput(std::string userInput)
@@ -77,60 +105,60 @@ std::pair<int, int> Movement::getUserInput()
 
 bool Movement::isValidMove(int start, int end) 
 {
-	if (m_board.pieceBoard[start].pieceType == piece::PAWN)
+	if (findPBoardElement(start).pieceType == piece::PAWN)
 	{
 		if(pawnMove(start, end))
 		{
-			m_board.updateBoard(start, end);
-			if (promotion(start, end)) 
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
+			if (promotion(start)) 
 			{
-				m_board.updateBoard(start, end);
+				m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			}
 			return true;
 		}
 		return false;
 	}
-	else if (m_board.pieceBoard[start].pieceType == piece::ROOK)
+	else if (findPBoardElement(start).pieceType == piece::ROOK)
 	{
 		if (rookMove(start, end)) 
 		{
-			m_board.updateBoard(start, end);
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			return true;
 		}
 		return false;
 	}
-	else if (m_board.pieceBoard[start].pieceType == piece::KNIGHT)
+	else if (findPBoardElement(start).pieceType == piece::KNIGHT)
 	{
 		if (knightMove(start, end))
 		{
-			m_board.updateBoard(start, end);
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			return true;
 		}
 		return false;
 	}
-	else if (m_board.pieceBoard[start].pieceType == piece::BISHOP)
+	else if (findPBoardElement(start).pieceType == piece::BISHOP)
 	{
 		if (bishopMove(start, end))
 		{
-			m_board.updateBoard(start, end);
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			return true;
 		}
 		return false;
 	}
-	else if (m_board.pieceBoard[start].pieceType == piece::QUEEN)
+	else if (findPBoardElement(start).pieceType == piece::QUEEN)
 	{
 		if (queenMove(start, end))
 		{
-			m_board.updateBoard(start, end);
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			return true;
 		}
 		return false;
 	}
-	else if (m_board.pieceBoard[start].pieceType == piece::KING)
+	else if (findPBoardElement(start).pieceType == piece::KING)
 	{
 		if (kingMove(start, end))
 		{
-			m_board.updateBoard(start, end);
+			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			return true;
 		}
 		return false;
@@ -139,16 +167,12 @@ bool Movement::isValidMove(int start, int end)
 		return false;
 }
 
-/*bool Movement::enPassant(int start, int end)
+//FIX ME, NEED TO FIND A WAY TO UPDATE PIECE BOARD PIECE, MAYBE USE OTHER FUNCTION AT TOP
+//Might be fixed - NOT FIXED
+bool Movement::promotion(int start)
 {
-
-}*/
-
-
-bool Movement::promotion(int start, int end)
-{
-	if ((m_board.pieceBoard[start].pieceType == piece::PAWN && m_board.pieceBoard[start].index < 8) ||
-		(m_board.pieceBoard[start].pieceType == piece::PAWN && m_board.pieceBoard[start].index < 64))
+	if ((findPBoardElement(start).pieceType == piece::PAWN && findPBoardElement(start).index < 8) ||
+		(findPBoardElement(start).pieceType == piece::PAWN && findPBoardElement(start).index < 64))
 	{
 		std::string userInput;
 		std::cout << "Please enter Queen, Rook, Bishop, Knight to promote your pawn respectively" << std::endl;
@@ -161,22 +185,22 @@ bool Movement::promotion(int start, int end)
 
 		if (userInput == "QUEEN")
 		{
-			m_board.pieceBoard[start].pieceType = piece::QUEEN;
+			m_board.pieceBoard[getPBoardIndexofElement(start)].pieceType = piece::QUEEN;
 			return true;
 		}
 		else if (userInput == "ROOK")
 		{
-			m_board.pieceBoard[start].pieceType = piece::ROOK;
+			m_board.pieceBoard[getPBoardIndexofElement(start)].pieceType = piece::ROOK;
 			return true;
 		}
 		else if (userInput == "KNIGHT")
 		{
-			m_board.pieceBoard[start].pieceType = piece::KNIGHT;
+			m_board.pieceBoard[getPBoardIndexofElement(start)].pieceType = piece::KNIGHT;
 			return true;
 		}
 		else if (userInput == "BISHOP")
 		{
-			m_board.pieceBoard[start].pieceType = piece::BISHOP;
+			m_board.pieceBoard[getPBoardIndexofElement(start)].pieceType = piece::BISHOP;
 			return true;
 		}
 	}
@@ -185,216 +209,308 @@ bool Movement::promotion(int start, int end)
 
 bool Movement::pawnMove(int start, int end)
 {
-	//Moving one space forward - Checking for correct tile & empty tile, wont place your king in check
-	if (((((m_board.pieceBoard[start].index + 8) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].pieceType == piece::EMPTY)) ||
-		(((m_board.pieceBoard[start].index - 8) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].pieceType == piece::EMPTY))) &&
-		(isCheck() == false))
-	{
-		return true;
-	}
+	GamePiece pieceToMove = findPBoardElement(start); 
+	char endTile = m_board.board[end];
 
-	//Taking enemy piece - Checking for correct tile & tile is an enemy piece, wont place your king in check
-	else if (((((m_board.pieceBoard[start].index + 7) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].isWhite != m_board.pieceBoard[start].isWhite)) ||
-		(((m_board.pieceBoard[start].index - 7) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].isWhite != m_board.pieceBoard[start].isWhite)) ||
-		(((m_board.pieceBoard[start].index + 9) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].isWhite != m_board.pieceBoard[start].isWhite)) ||
-		(((m_board.pieceBoard[start].index - 9) == m_board.pieceBoard[end].index) && (m_board.pieceBoard[end].isWhite != m_board.pieceBoard[start].isWhite)) &&
-		(isCheck() == false)))
-	{
-		return true;
-	}
+	int movementOffset = 8;
+	int takingOffsetLeft = 7;
+	int takingOffsetRight = 9;
 
-	//Double move - Checking for correct tile, both tiles in front are empty, pawn hasnt moved yet, wont place your king in check
-	else if (((m_board.pieceBoard[start].index + 16) == m_board.pieceBoard[end].index) &&
-		(m_board.pieceBoard[start + 8].pieceType == piece::EMPTY) &&
-		(m_board.pieceBoard[end].pieceType == piece::EMPTY) &&
-		(m_board.pieceBoard[start].hasMoved == false) && (isCheck() == false))
+	if (!isCheck())
 	{
-		return true;
-	}
+		if (pieceToMove.isWhite)
+		{
+			if (endTile == 'E')
+			{
+				//standard move one tile
+				if (pieceToMove.index - movementOffset == end)
+				{
+					return true;
+				}
 
-	/*En Passant, first black taking whiteand then white taking black - checks for starting pawn color, pawn is in correct tile row,
-	  other pawn is enemy and has double moved, correct end tile, and wont place your king in check*/
-	else if (((m_board.pieceBoard[start].isWhite == false) &&
-		(m_board.pieceBoard[start].index >= 32 || m_board.pieceBoard[start].index <= 39) &&
-		(m_board.pieceBoard[end].isWhite == true && m_board.pieceBoard[end].hasDoubleMoved == true) &&
-		((m_board.pieceBoard[end].index == m_board.pieceBoard[start].index + 7) || (m_board.pieceBoard[end].index == m_board.pieceBoard[start].index + 9)) &&
-		(isCheck() == false)) || //end of En Passant Black
-		((m_board.pieceBoard[start].isWhite == true) &&
-		(m_board.pieceBoard[start].index >= 24 || m_board.pieceBoard[start].index <= 31) &&
-		(m_board.pieceBoard[end].isWhite == false && m_board.pieceBoard[end].hasDoubleMoved == true) &&
-		((m_board.pieceBoard[end].index == m_board.pieceBoard[start].index - 7) || (m_board.pieceBoard[end].index == m_board.pieceBoard[start].index - 9)) &&
-		(isCheck() == false))) //end of En Passant White
-	{
-		return true;
+				//double move check
+				if (pieceToMove.index - (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index - movementOffset] == 'E')
+				{
+					pieceToMove.hasDoubleMoved = true;
+					return true;
+				}
+			}
+
+			//Check if pawn is trying to take a piece
+			GamePiece pieceToTake = findPBoardElement(end);
+			if (pieceToTake.index != -1 && !pieceToTake.isWhite && endTile != 'E')
+			{
+				//take right check
+				if (pieceToMove.index - takingOffsetLeft == end)
+					return true;
+
+				//take left check
+				if (pieceToMove.index - takingOffsetRight == end)
+					return true;
+			}
+
+			//En Passant
+			if (pieceToMove.index >= 24 || pieceToMove.index <= 31)
+			{
+				if (!pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
+				{
+					if (pieceToMove.index - 7 == end)
+					{
+						return true;
+					}
+
+					if (pieceToMove.index - 9 == end)
+					{
+						return true;
+					}
+				}
+			}
+
+		}
+
+		//black piece logic
+		else
+		{
+			if (endTile == 'E')
+			{
+				//standard move one tile
+				if (pieceToMove.index + movementOffset == end)
+				{
+					return true;
+				}
+
+				//double move check
+				if (pieceToMove.index + (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index + movementOffset] == 'E')
+				{
+					pieceToMove.hasDoubleMoved = true;
+					return true;
+				}
+			}
+
+			//Check if pawn is trying to take a piece
+			GamePiece pieceToTake = findPBoardElement(end);
+			if (pieceToTake.index != -1 && pieceToTake.isWhite && endTile != 'E')
+			{
+				//take left check
+				if (pieceToMove.index + takingOffsetLeft == end)
+					return true;
+
+				//take right check
+				if (pieceToMove.index + takingOffsetRight == end)
+					return true;
+			}
+
+			//En Passant
+			if (pieceToMove.index >= 32 || pieceToMove.index <= 39)
+			{
+				if (pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
+				{
+					if (pieceToMove.index + 7 == end)
+					{
+						return true;
+					}
+
+					if (pieceToMove.index + 9 == end)
+					{
+						return true;
+					}
+				}
+			}
+		}
 	}
-	else
-		return false;
+	return false;
 }
 
 
 bool Movement::knightMove(int start, int end)
 {
-	//Vertical L Move - Checking correct tile, end tile is empty or enemy, and wont place your king in check
-	if ((((m_board.pieceBoard[start].index + 17) == m_board.pieceBoard[end].index) ||
-		((m_board.pieceBoard[start].index + 15) == m_board.pieceBoard[end].index) ||
-		((m_board.pieceBoard[start].index - 17) == m_board.pieceBoard[end].index) ||
-		((m_board.pieceBoard[start].index - 15) == m_board.pieceBoard[end].index)) &&
-		((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-		(isCheck() == false))
-	{
-		return true;
-	}
-	//Horizontal L Move - Checking correct tile, end tile is empty or enemy, and wont place your king in check
-	else if ((((m_board.pieceBoard[start].index + 10) == m_board.pieceBoard[end].index) ||
-			((m_board.pieceBoard[start].index + 6) == m_board.pieceBoard[end].index) ||
-			((m_board.pieceBoard[start].index - 10) == m_board.pieceBoard[end].index) ||
-			((m_board.pieceBoard[start].index - 6) == m_board.pieceBoard[end].index)) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
-	{
-		return true;
-	}
+	GamePiece pieceToMove = findPBoardElement(start); 
+	char endTile = m_board.board[end];
+	GamePiece pieceToTake = findPBoardElement(end);
 
-	else
-		return false;
+	//Named for white, use opposite for black
+	int vMovementOffsetLeft = 17;
+	int vMovementOffsetRight = 15;
+	int hMovementOffsetRight = 6;
+	int hMovementOffsetLeft = 10;
+
+	if(!isCheck())
+	{	
+		if (endTile == 'E' || pieceToTake.isWhite != pieceToMove.isWhite)
+		{
+			//Vertical L Move
+			if (pieceToMove.index - vMovementOffsetLeft == end)
+				return true;
+					
+			if (pieceToMove.index - vMovementOffsetRight == end)
+				return true;
+
+			if (pieceToMove.index + vMovementOffsetLeft == end)
+				return true;
+
+			if (pieceToMove.index + vMovementOffsetRight == end)
+				return true;
+
+			//Horizontal L Move
+			if (pieceToMove.index - hMovementOffsetLeft == end)
+				return true;
+					
+			if (pieceToMove.index - hMovementOffsetRight == end)
+				return true;
+					
+			if (pieceToMove.index + hMovementOffsetLeft == end)
+				return true;
+					
+			if (pieceToMove.index + hMovementOffsetRight == end)
+				return true;
+		}
+	}
+	return false;
 }
 
 bool Movement::bishopMove(int start, int end)
 {
-	//NW decr by 9, SE inc by 9, NE decr by 7, SW inc by 7
-	int tilesToTravelByNine = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 9);
-	int tilesToTravelBySeven = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 7); 
+	GamePiece pieceToMove = findPBoardElement(start);
+	char endTile = m_board.board[end];
+	GamePiece pieceToTake = findPBoardElement(end);
+
+	int tilesToTravelByNine = ((end - pieceToMove.index) / 9);
+	if (tilesToTravelByNine < 0) 
+	{
+		tilesToTravelByNine = tilesToTravelByNine * -1;
+	}
+	
+	int tilesToTravelBySeven = ((end - pieceToMove.index) / 7);
+	if (tilesToTravelBySeven < 0)
+	{
+		tilesToTravelBySeven = tilesToTravelBySeven * -1;
+	}
 
 	bool chooseNine = false;
 	bool chooseSeven = false;
 	bool emptyDiag = false;
 
-	if (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 9) == 0)
+	if (((end - pieceToMove.index) % 9) == 0)
 	{
 		chooseNine = true;
 	}
-	else if (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 7) == 0)
+	else if (((end - pieceToMove.index) % 7) == 0)
 	{
 		chooseSeven = true;
 	}
 
-	if (chooseNine)
+	if (!isCheck()) 
 	{
-		//South East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		if ((m_board.pieceBoard[start].index + (9 * tilesToTravelByNine) == m_board.pieceBoard[end].index) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
+		if (endTile == 'E' || pieceToTake.isWhite != pieceToMove.isWhite) 
 		{
-			//Used when the bishop only has to move one tile, to set empty diag properly
-			if (tilesToTravelByNine == 1) 
+			if (chooseNine) 
 			{
-				emptyDiag == true;
-			}
-			else 
-			{
-				//checking to make sure all spaces between start and end are empty
-				for (int i = 1; i < tilesToTravelByNine; i++)
+				//SE
+				if (pieceToMove.index + (9 * tilesToTravelByNine) == end) 
 				{
-					if (m_board.pieceBoard[start + (tilesToTravelByNine * i)].pieceType == piece::EMPTY)
+					if (tilesToTravelByNine == 1) 
 					{
 						emptyDiag = true;
 					}
+
+					else 
+					{
+						for (int i = 1; i < tilesToTravelByNine; i++)
+						{
+							if (findPBoardElement(start + (9 * i)).pieceType == piece::EMPTY)
+							{
+								emptyDiag = true;
+							}
+							else
+							{
+								emptyDiag = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//NW
+				if (pieceToMove.index - (9 * tilesToTravelByNine) == end) 
+				{
+					if (tilesToTravelByNine == 1)
+					{
+						emptyDiag = true;
+					}
+
 					else
 					{
-						emptyDiag = false;
-						break;
+						for (int i = 1; i < tilesToTravelByNine; i++)
+						{
+							if (findPBoardElement(start - (9 * i)).pieceType == piece::EMPTY)
+							{
+								emptyDiag = true;
+							}
+							else
+							{
+								emptyDiag = false;
+								break;
+							}
+						}
 					}
 				}
 			}
 			
-		}
-		//North West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		else if ((m_board.pieceBoard[start].index - (9 * tilesToTravelByNine) == m_board.pieceBoard[end].index) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
-			 {
-				 //Used when the bishop only has to move one tile, to set empty diag properly
-				 if (tilesToTravelByNine == 1)
-				 {
-					 emptyDiag == true;
-				 }
-				 else
-				 {
-					 for (int i = 1; i < tilesToTravelByNine; i++)
-					 {
-						 if (m_board.pieceBoard[start - (tilesToTravelByNine * i)].pieceType == piece::EMPTY)
-						 {
-							 emptyDiag = true;
-						 }
-						 else
-						 {
-							 emptyDiag = false;
-							 break;
-						 }
-					 }
-				 }
-			 }
-	}
-	
-	else if (chooseSeven) 
-	{
-		//South West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		if ((m_board.pieceBoard[start].index + (7 * tilesToTravelBySeven) == m_board.pieceBoard[end].index) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
-		{
-			//Used when the bishop only has to move one tile, to set empty diag properly
-			if (tilesToTravelBySeven == 1)
+			if (chooseSeven) 
 			{
-				emptyDiag == true;
-			}
-			else
-			{
-				//checking to make sure all spaces between start and end are empty
-				for (int i = 1; i < tilesToTravelBySeven; i++)
+				//SW
+				if (pieceToMove.index + (7 * tilesToTravelBySeven) == end)
 				{
-					if (m_board.pieceBoard[start + (tilesToTravelBySeven * i)].pieceType == piece::EMPTY)
+					if (tilesToTravelBySeven == 1)
 					{
 						emptyDiag = true;
 					}
+
 					else
 					{
-						emptyDiag = false;
-						break;
+						for (int i = 1; i < tilesToTravelBySeven; i++)
+						{
+							if (findPBoardElement(start + (7 * i)).pieceType == piece::EMPTY)
+							{
+								emptyDiag = true;
+							}
+							else
+							{
+								emptyDiag = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//NE
+				if (pieceToMove.index - (7 * tilesToTravelBySeven) == end)
+				{
+					if (tilesToTravelBySeven == 1)
+					{
+						emptyDiag = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelBySeven; i++)
+						{
+							if (findPBoardElement(start - (7 * i)).pieceType == piece::EMPTY)
+							{
+								emptyDiag = true;
+							}
+							else
+							{
+								emptyDiag = false;
+								break;
+							}
+						}
 					}
 				}
 			}
 		}
-		//North East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		else if ((m_board.pieceBoard[start].index - (7 * tilesToTravelBySeven) == m_board.pieceBoard[end].index) &&
-				((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-				(isCheck() == false))
-			 {
-				  //Used when the bishop only has to move one tile, to set empty diag properly
-				  if (tilesToTravelBySeven == 1)
-				  {
-				 	 emptyDiag == true;
-				  }
-				  else
-				  {
-			
-					  //checking to make sure all spaces between start and end are empty
-					  for (int i = 1; i < tilesToTravelBySeven; i++)
-					  {
-						  if (m_board.pieceBoard[start - (tilesToTravelBySeven * i)].pieceType == piece::EMPTY)
-						  {
-							  emptyDiag = true;
-						  }
-						  else
-						  {
-							  emptyDiag = false;
-							  break;
-						  }
-					  }
-				  }
-			 }
 	}
-	
+
 	if (emptyDiag) 
 	{
 		return true;
@@ -407,134 +523,141 @@ bool Movement::bishopMove(int start, int end)
 
 bool Movement::rookMove(int start, int end)
 {
-	//N decr by 8, E inc by 1, S incr by 8, W decr by 1
-	int tilesToTravelByEight = ((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) / 8);
-	int tilesToTravelByOne = (m_board.pieceBoard[end].index - m_board.pieceBoard[start].index);
+	GamePiece pieceToMove = findPBoardElement(start);
+	char endTile = m_board.board[end];
+	GamePiece pieceToTake = findPBoardElement(end);
+
+	int tilesToTravelByEight = ((end - pieceToMove.index) / 8);
+	if (tilesToTravelByEight < 0)
+	{
+		tilesToTravelByEight = tilesToTravelByEight * -1;
+	}
+
+	int tilesToTravelByOne = end - pieceToMove.index;
+	if (tilesToTravelByOne < 0)
+	{
+		tilesToTravelByOne = tilesToTravelByOne * -1;
+	}
 
 	bool chooseEight = false;
 	bool emptyHorizontal = false;
 	bool emptyVertical = false;
 
-	if (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 8) == 0)
+	if (((end - pieceToMove.index) % 8) == 0)
 	{
 		chooseEight = true;
 	}
 
-	if (chooseEight)
+	if (!isCheck())
 	{
-		//South Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		if ((m_board.pieceBoard[start].index + (8 * tilesToTravelByEight) == m_board.pieceBoard[end].index) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
+		if (endTile == 'E' || pieceToTake.isWhite != pieceToMove.isWhite)
 		{
-			//Used when the Rook only has to move one tile, to set emptyVertical properly
-			if (tilesToTravelByEight == 1)
+			if (chooseEight)
 			{
-				emptyVertical == true;
-			}
-			else
-			{
-				//checking to make sure all spaces between start and end are empty
-				for (int i = 1; i < tilesToTravelByEight; i++)
+				//S
+				if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
 				{
-					if (m_board.pieceBoard[start + (tilesToTravelByEight * i)].pieceType == piece::EMPTY)
+					if (tilesToTravelByEight == 1)
 					{
 						emptyVertical = true;
 					}
+
 					else
 					{
-						emptyVertical = false;
-						break;
+						for (int i = 1; i < tilesToTravelByEight; i++)
+						{
+							if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+							{
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//N
+				if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
+				{
+					if (tilesToTravelByEight == 1)
+					{
+						emptyVertical = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByEight; i++)
+						{
+							if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+							{
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
+							}
+						}
 					}
 				}
 			}
-			
-		}
-		//North Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		else if ((m_board.pieceBoard[start].index - (8 * tilesToTravelByEight) == m_board.pieceBoard[end].index) &&
-				((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-				(isCheck() == false))
-			 {
-				 //Used when the Rook only has to move one tile, to set emptyVertical properly
-				 if (tilesToTravelByEight == 1)
-				 {
-					 emptyVertical == true;
-				 }
-				 else 
-				 {
-					 for (int i = 1; i < tilesToTravelByEight; i++)
-					 {
-						 if (m_board.pieceBoard[start - (tilesToTravelByEight * i)].pieceType == piece::EMPTY)
-						 {
-							 emptyVertical = true;
-						 }
-						 else
-						 {
-							 emptyVertical = false;
-							 break;
-						 }
-					 }
-				 }
-			 }
-	}
 
-	else
-	{
-		//West Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		if ((m_board.pieceBoard[start].index - (1 * tilesToTravelByOne) == m_board.pieceBoard[end].index) &&
-			((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			(isCheck() == false))
-		{
-			//Used when the Rook only has to move one tile, to set emptyHorizontal properly
-			if (tilesToTravelByOne == 1)
+			else
 			{
-				emptyHorizontal == true;
-			}
-			else 
-			{
-				//checking to make sure all spaces between start and end are empty
-				for (int i = 1; i < tilesToTravelByOne; i++)
+				//E
+				if (pieceToMove.index + tilesToTravelByOne == end)
 				{
-					if (m_board.pieceBoard[start - (tilesToTravelByOne * i)].pieceType == piece::EMPTY)
+					if (tilesToTravelByOne == 1)
 					{
 						emptyHorizontal = true;
 					}
+
 					else
 					{
-						emptyHorizontal = false;
-						break;
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//W
+				if (pieceToMove.index - tilesToTravelByOne == end)
+				{
+					if (tilesToTravelByOne == 1)
+					{
+						emptyHorizontal = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
 					}
 				}
 			}
-			
 		}
-		//East Checking for - correct tile match, end tile is empty or an enemy, and wont place your king in check
-		else if ((m_board.pieceBoard[start].index + (1 * tilesToTravelByOne) == m_board.pieceBoard[end].index) &&
-			 ((m_board.pieceBoard[end].pieceType == piece::EMPTY) || (m_board.pieceBoard[start].isWhite != m_board.pieceBoard[end].isWhite)) &&
-			 (isCheck() == false))
-			 {
-				//Used when the Rook only has to move one tile, to set emptyHorizontal properly
-				if (tilesToTravelByOne == 1)
-				{
-					emptyHorizontal == true;
-				}
-				else 
-				{
-					//checking to make sure all spaces between start and end are empty
-					for (int i = 1; i < tilesToTravelByOne; i++)
-					{
-						if (m_board.pieceBoard[start + (tilesToTravelByOne * i)].pieceType == piece::EMPTY)
-						{
-							emptyHorizontal = true;
-						}
-						else
-						{
-							emptyHorizontal = false;
-							break;
-						}
-					}
-				}
-			 }
 	}
 
 	if (emptyHorizontal || emptyVertical)
@@ -545,13 +668,13 @@ bool Movement::rookMove(int start, int end)
 	{
 		return false;
 	}
-
-
 }
 
 bool Movement::queenMove(int start, int end) 
 {
-	if ((((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 9) == 0) || (((m_board.pieceBoard[end].index - m_board.pieceBoard[start].index) % 7) == 0))
+	GamePiece pieceToMove = findPBoardElement(start);
+
+	if (((end - pieceToMove.index) % 9) == 0 || ((end - pieceToMove.index) % 7) == 0)
 	{
 		if (bishopMove(start, end)) 
 		{
@@ -597,5 +720,7 @@ bool Movement::kingMove(int start, int end)
 
 bool Movement::isCheck() 
 {
-	return true;
+	return false;
 }
+
+//From king to piece

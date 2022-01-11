@@ -14,18 +14,39 @@ void GameBoard::printBoard()
 	}
 }
 
-void GameBoard::updateBoard(int start, int end)
+void GameBoard::updateBoard(int pStart, int start, int pEnd, int end)
 {
-	pieceBoard[start].index = end;
-	pieceBoard[start].hasMoved = true;
-	if (pieceBoard[start].pieceType == piece::PAWN && pieceBoard[start + 16].index == pieceBoard[end].index)
+	if (board[end] != 'E')
 	{
-		pieceBoard[start].hasDoubleMoved = true;
+		pieceBoard[pEnd].index = -1;
 	}
 
-	//pieces that get taken?
-
-	//updating the board that will be printed
+	pieceBoard[pStart].index = end;
+	pieceBoard[pStart].hasMoved = true;
 	board[start] = 'E';
-	board[end] = pieceBoard[start].pieceType;
+
+	if (pieceBoard[pStart].pieceType == piece::PAWN) 
+	{
+		board[end] = 'P';
+	}
+	if (pieceBoard[pStart].pieceType == piece::ROOK)
+	{
+		board[end] = 'R';
+	}
+	if (pieceBoard[pStart].pieceType == piece::KNIGHT)
+	{
+		board[end] = 'N';
+	}
+	if (pieceBoard[pStart].pieceType == piece::BISHOP)
+	{
+		board[end] = 'B';
+	}
+	if (pieceBoard[pStart].pieceType == piece::QUEEN)
+	{
+		board[end] = 'Q';
+	}
+	if (pieceBoard[pStart].pieceType == piece::KING)
+	{
+		board[end] = 'K';
+	}
 }
