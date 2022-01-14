@@ -11,9 +11,6 @@ int main()
 	GameState gameInstance;
 	gameInstance.runGame();
 
-
-
-
 	//user input calls isvalidmove determines which piece
 	// isvalidmove calls the typemove to see if it works
 	// if yes, update board

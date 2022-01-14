@@ -48,5 +48,5 @@ void GameBoard::updateBoard(int pStart, int start, int pEnd, int end)
 	if (pieceBoard[pStart].pieceType == piece::KING)
 	{
 		board[end] = 'K';
-	}
+	}	
 }

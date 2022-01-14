@@ -2,6 +2,7 @@
 #include <utility>
 #include <string>
 #include <iostream>
+#include <vector>
 #include "GameBoard.h"
 
 class Movement 
@@ -9,10 +10,8 @@ class Movement
 	public:
 		Movement(GameBoard& gameBoard) :m_board(gameBoard) {}
 
-		bool enPassant(int start, int end);
-		void castle();
 		bool promotion(int start);
-		bool isCheck();
+		bool isTileUnderAttack(int pBoardIndex, bool isWhiteTurn);
 		
 		bool isValidMove(int start, int end);
 		bool pawnMove(int start, int end); 
@@ -27,6 +26,17 @@ class Movement
 		GamePiece findPBoardElement(int startTile);
 		int getPBoardIndexofElement(int index);
 
+		void setTurn(bool wTurn) { m_whiteTurn = wTurn; }
+		
+		std::vector<int> getDangerTile() 
+		{
+			auto copy = m_dangerTiles;
+			m_dangerTiles.clear();
+			return copy;
+		}
+
 private:
 	GameBoard& m_board;
+	bool m_whiteTurn = true;
+	std::vector<int> m_dangerTiles;
 };
