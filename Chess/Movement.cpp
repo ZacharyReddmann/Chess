@@ -181,6 +181,15 @@ bool Movement::isValidMove(int start, int end)
 		{
 			m_board.updateBoard(getPBoardIndexofElement(start), start, getPBoardIndexofElement(end), end);
 			isValid = true;
+			if (m_whiteTurn)
+			{
+				tileIndexToCheck = m_board.pieceBoard[28].index; //White King Index
+			}
+
+			else
+			{
+				tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
+			}
 		}
 	}
 	
@@ -257,110 +266,106 @@ bool Movement::pawnMove(int start, int end)
 		tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
 	}
 
-	if (!isTileUnderAttack(tileIndexToCheck, checkWhiteKing))
+	if (pieceToMove.isWhite && m_whiteTurn)
 	{
-		if (pieceToMove.isWhite && m_whiteTurn)
+		if (endTile == 'E')
 		{
-			if (endTile == 'E')
+			//standard move one tile
+			if (pieceToMove.index - movementOffset == end)
 			{
-				//standard move one tile
-				if (pieceToMove.index - movementOffset == end)
-				{
-					return true;
-				}
-
-				//double move check
-				if (pieceToMove.index - (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index - movementOffset] == 'E')
-				{
-					pieceToMove.hasDoubleMoved = true;
-					return true;
-				}
+				return true;
 			}
 
-			//Check if pawn is trying to take a piece
-			GamePiece pieceToTake = findPBoardElement(end);
-			if (pieceToTake.index != -1 && !pieceToTake.isWhite && endTile != 'E')
+			//double move check
+			if (pieceToMove.index - (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index - movementOffset] == 'E')
 			{
-				//take right check
-				if (pieceToMove.index - takingOffsetLeft == end)
-					return true;
-
-				//take left check
-				if (pieceToMove.index - takingOffsetRight == end)
-					return true;
+				pieceToMove.hasDoubleMoved = true;
+				return true;
 			}
-
-			//En Passant
-			if (pieceToMove.index >= 24 || pieceToMove.index <= 31)
-			{
-				if (!pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
-				{
-					if (pieceToMove.index - 7 == end)
-					{
-						return true;
-					}
-
-					if (pieceToMove.index - 9 == end)
-					{
-						return true;
-					}
-				}
-			}
-			std::cout << "Error, white pawn can not move there" << std::endl;
 		}
 
-		//black piece logic
-		if (!pieceToMove.isWhite && !m_whiteTurn)
+		//Check if pawn is trying to take a piece
+		GamePiece pieceToTake = findPBoardElement(end);
+		if (pieceToTake.index != -1 && !pieceToTake.isWhite && endTile != 'E')
 		{
-			if (endTile == 'E')
-			{
-				//standard move one tile
-				if (pieceToMove.index + movementOffset == end)
-				{
-					return true;
-				}
+			//take right check
+			if (pieceToMove.index - takingOffsetLeft == end)
+				return true;
 
-				//double move check
-				if (pieceToMove.index + (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index + movementOffset] == 'E')
-				{
-					pieceToMove.hasDoubleMoved = true;
-					return true;
-				}
-			}
-
-			//Check if pawn is trying to take a piece
-			GamePiece pieceToTake = findPBoardElement(end);
-			if (pieceToTake.index != -1 && pieceToTake.isWhite && endTile != 'E')
-			{
-				//take left check
-				if (pieceToMove.index + takingOffsetLeft == end)
-					return true;
-
-				//take right check
-				if (pieceToMove.index + takingOffsetRight == end)
-					return true;
-			}
-
-			//En Passant
-			if (pieceToMove.index >= 32 || pieceToMove.index <= 39)
-			{
-				if (pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
-				{
-					if (pieceToMove.index + 7 == end)
-					{
-						return true;
-					}
-
-					if (pieceToMove.index + 9 == end)
-					{
-						return true;
-					}
-				}
-			}
-			std::cout << "Error, black pawn can not move there" << std::endl;
+			//take left check
+			if (pieceToMove.index - takingOffsetRight == end)
+				return true;
 		}
+
+		//En Passant
+		if (pieceToMove.index >= 24 || pieceToMove.index <= 31)
+		{
+			if (!pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
+			{
+				if (pieceToMove.index - 7 == end)
+				{
+					return true;
+				}
+
+				if (pieceToMove.index - 9 == end)
+				{
+					return true;
+				}
+			}
+		}
+		printError("Error, white pawn can not move there");
 	}
-	std::cout << "Can't move there, king in check" << std::endl;
+
+	//black piece logic
+	if (!pieceToMove.isWhite && !m_whiteTurn)
+	{
+		if (endTile == 'E')
+		{
+			//standard move one tile
+			if (pieceToMove.index + movementOffset == end)
+			{
+				return true;
+			}
+
+			//double move check
+			if (pieceToMove.index + (movementOffset * 2) == end && !pieceToMove.hasMoved && m_board.board[pieceToMove.index + movementOffset] == 'E')
+			{
+				pieceToMove.hasDoubleMoved = true;
+				return true;
+			}
+		}
+
+		//Check if pawn is trying to take a piece
+		GamePiece pieceToTake = findPBoardElement(end);
+		if (pieceToTake.index != -1 && pieceToTake.isWhite && endTile != 'E')
+		{
+			//take left check
+			if (pieceToMove.index + takingOffsetLeft == end)
+				return true;
+
+			//take right check
+			if (pieceToMove.index + takingOffsetRight == end)
+				return true;
+		}
+
+		//En Passant
+		if (pieceToMove.index >= 32 || pieceToMove.index <= 39)
+		{
+			if (pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
+			{
+				if (pieceToMove.index + 7 == end)
+				{
+					return true;
+				}
+
+				if (pieceToMove.index + 9 == end)
+				{
+					return true;
+				}
+			}
+		}
+		printError("Error, black pawn can not move there");
+	}
 	return false;
 }
 
@@ -370,6 +375,7 @@ bool Movement::knightMove(int start, int end)
 	GamePiece pieceToMove = findPBoardElement(start); 
 	char endTile = m_board.board[end];
 	GamePiece pieceToTake = findPBoardElement(end);
+	int ptmIndex = pieceToMove.index;
 
 	//Named for white, use opposite for black
 	int vMovementOffsetLeft = 17;
@@ -392,77 +398,138 @@ bool Movement::knightMove(int start, int end)
 		tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
 	}
 
-	if(!isTileUnderAttack(tileIndexToCheck, checkWhiteKing))
-	{	
-		//White Knight Logic
-		if (pieceToMove.isWhite && m_whiteTurn) 
+
+	//White Knight Logic
+	if (pieceToMove.isWhite && m_whiteTurn) 
+	{
+		if (endTile == 'E' || !pieceToTake.isWhite)
 		{
-			if (endTile == 'E' || !pieceToTake.isWhite)
+			//Vertical L Move
+			//2up left
+			if ((ptmIndex >= 17 && ptmIndex <= 23) || (ptmIndex >= 25 && ptmIndex <= 31) || (ptmIndex >= 33 && ptmIndex <= 39) || (ptmIndex >= 41 && ptmIndex <= 47) || (ptmIndex >= 49 && ptmIndex <= 55) || (ptmIndex >= 57 && ptmIndex <= 63)) 
 			{
-				//Vertical L Move
 				if (pieceToMove.index - vMovementOffsetLeft == end)
 					return true;
-
-				if (pieceToMove.index - vMovementOffsetRight == end)
-					return true;
-
-				if (pieceToMove.index + vMovementOffsetLeft == end)
-					return true;
-
-				if (pieceToMove.index + vMovementOffsetRight == end)
-					return true;
-
-				//Horizontal L Move
-				if (pieceToMove.index - hMovementOffsetLeft == end)
-					return true;
-
-				if (pieceToMove.index - hMovementOffsetRight == end)
-					return true;
-
-				if (pieceToMove.index + hMovementOffsetLeft == end)
-					return true;
-
-				if (pieceToMove.index + hMovementOffsetRight == end)
-					return true;
 			}
-			std::cout << "Error, white knight cannot move there" << std::endl;
-		}
 		
-		//Black Knight Logic
-		if (!pieceToMove.isWhite && !m_whiteTurn)
-		{
-			if (endTile == 'E' || pieceToTake.isWhite)
+			//2up right
+			if ((ptmIndex >= 16 && ptmIndex <= 22) || (ptmIndex >= 24 && ptmIndex <= 30) || (ptmIndex >= 32 && ptmIndex <= 38) || (ptmIndex >= 40 && ptmIndex <= 46) || (ptmIndex >= 48 && ptmIndex <= 54) || (ptmIndex >= 56 && ptmIndex <= 62))
 			{
-				//Vertical L Move
-				if (pieceToMove.index - vMovementOffsetLeft == end)
-					return true;
-
 				if (pieceToMove.index - vMovementOffsetRight == end)
 					return true;
-
+			}
+			
+			//2down right
+			if ((ptmIndex >= 0 && ptmIndex <= 6) || (ptmIndex >= 8 && ptmIndex <= 14) || (ptmIndex >= 16 && ptmIndex <= 22) || (ptmIndex >= 24 && ptmIndex <= 30) || (ptmIndex >= 32 && ptmIndex <= 38) || (ptmIndex >= 40 && ptmIndex <= 46)) 
+			{
 				if (pieceToMove.index + vMovementOffsetLeft == end)
 					return true;
-
+			}
+	
+			//2down left
+			if ((ptmIndex >= 1 && ptmIndex <= 7) || (ptmIndex >= 9 && ptmIndex <= 15) || (ptmIndex >= 17 && ptmIndex <= 23) || (ptmIndex >= 25 && ptmIndex <= 31) || (ptmIndex >= 33 && ptmIndex <= 39) || (ptmIndex >= 41 && ptmIndex <= 47))
+			{
 				if (pieceToMove.index + vMovementOffsetRight == end)
 					return true;
-
-				//Horizontal L Move
+			}
+			
+			//Horizontal L Move
+			//up 2left
+			if ((ptmIndex >= 10 && ptmIndex <= 15) || (ptmIndex >= 18 && ptmIndex <= 23) || (ptmIndex >= 26 && ptmIndex <= 31) || (ptmIndex >= 34 && ptmIndex <= 39) || (ptmIndex >= 42 && ptmIndex <= 47) || (ptmIndex >= 50 && ptmIndex <= 55) || (ptmIndex >= 58 && ptmIndex <= 63))
+			{
 				if (pieceToMove.index - hMovementOffsetLeft == end)
 					return true;
+			}
 
+			//up 2right
+			if ((ptmIndex >= 8 && ptmIndex <= 13) || (ptmIndex >= 16 && ptmIndex <= 21) || (ptmIndex >= 24 && ptmIndex <= 29) || (ptmIndex >= 32 && ptmIndex <= 37) || (ptmIndex >= 40 && ptmIndex <= 45) || (ptmIndex >= 48 && ptmIndex <= 53) || (ptmIndex >= 56 && ptmIndex <= 61))
+			{
 				if (pieceToMove.index - hMovementOffsetRight == end)
 					return true;
+			}
 
+			//down 2 right
+			if ((ptmIndex >= 0 && ptmIndex <= 5) || (ptmIndex >= 8 && ptmIndex <= 13) || (ptmIndex >= 16 && ptmIndex <= 21) || (ptmIndex >= 24 && ptmIndex <= 29) || (ptmIndex >= 32 && ptmIndex <= 37) || (ptmIndex >= 40 && ptmIndex <= 45) || (ptmIndex >= 48 && ptmIndex <= 53)) 
+			{
 				if (pieceToMove.index + hMovementOffsetLeft == end)
 					return true;
-
+			}
+			
+			//down 2left
+			if ((ptmIndex >= 2 && ptmIndex <= 7) || (ptmIndex >= 10 && ptmIndex <= 15) || (ptmIndex >= 18 && ptmIndex <= 23) || (ptmIndex >= 26 && ptmIndex <= 31) || (ptmIndex >= 34 && ptmIndex <= 39) || (ptmIndex >= 42 && ptmIndex <= 47) || (ptmIndex >= 50 && ptmIndex <= 55))
+			{
 				if (pieceToMove.index + hMovementOffsetRight == end)
 					return true;
 			}
-			std::cout << "Error, black knight cannot move there" << std::endl;
 		}
+		printError("Error, white knight cannot move there");
 	}
-	std::cout << "Can't move there, king in check" << std::endl;
+		
+	//Black Knight Logic
+	if (!pieceToMove.isWhite && !m_whiteTurn)
+	{
+		if (endTile == 'E' || pieceToTake.isWhite)
+		{
+			//Vertical L Move
+			//2up left
+			if ((ptmIndex >= 17 && ptmIndex <= 23) || (ptmIndex >= 25 && ptmIndex <= 31) || (ptmIndex >= 33 && ptmIndex <= 39) || (ptmIndex >= 41 && ptmIndex <= 47) || (ptmIndex >= 49 && ptmIndex <= 55) || (ptmIndex >= 57 && ptmIndex <= 63))
+			{
+				if (pieceToMove.index - vMovementOffsetLeft == end)
+					return true;
+			}
+
+			//2up right
+			if ((ptmIndex >= 16 && ptmIndex <= 22) || (ptmIndex >= 24 && ptmIndex <= 30) || (ptmIndex >= 32 && ptmIndex <= 38) || (ptmIndex >= 40 && ptmIndex <= 46) || (ptmIndex >= 48 && ptmIndex <= 54) || (ptmIndex >= 56 && ptmIndex <= 62))
+			{
+				if (pieceToMove.index - vMovementOffsetRight == end)
+					return true;
+			}
+
+			//2down right
+			if ((ptmIndex >= 0 && ptmIndex <= 6) || (ptmIndex >= 8 && ptmIndex <= 14) || (ptmIndex >= 16 && ptmIndex <= 22) || (ptmIndex >= 24 && ptmIndex <= 30) || (ptmIndex >= 32 && ptmIndex <= 38) || (ptmIndex >= 40 && ptmIndex <= 46))
+			{
+				if (pieceToMove.index + vMovementOffsetLeft == end)
+					return true;
+			}
+
+			//2down left
+			if ((ptmIndex >= 1 && ptmIndex <= 7) || (ptmIndex >= 9 && ptmIndex <= 15) || (ptmIndex >= 17 && ptmIndex <= 23) || (ptmIndex >= 25 && ptmIndex <= 31) || (ptmIndex >= 33 && ptmIndex <= 39) || (ptmIndex >= 41 && ptmIndex <= 47))
+			{
+				if (pieceToMove.index + vMovementOffsetRight == end)
+					return true;
+			}
+
+			//Horizontal L Move
+			//up 2left
+			if ((ptmIndex >= 10 && ptmIndex <= 15) || (ptmIndex >= 18 && ptmIndex <= 23) || (ptmIndex >= 26 && ptmIndex <= 31) || (ptmIndex >= 34 && ptmIndex <= 39) || (ptmIndex >= 42 && ptmIndex <= 47) || (ptmIndex >= 50 && ptmIndex <= 55) || (ptmIndex >= 58 && ptmIndex <= 63))
+			{
+				if (pieceToMove.index - hMovementOffsetLeft == end)
+					return true;
+			}
+
+			//up 2right
+			if ( (ptmIndex >= 9 && ptmIndex <= 13) || (ptmIndex >= 17 && ptmIndex <= 21) || (ptmIndex >= 25 && ptmIndex <= 29) || (ptmIndex >= 33 && ptmIndex <= 37) || (ptmIndex >= 41 && ptmIndex <= 45) || (ptmIndex >= 49 && ptmIndex <= 53) || (ptmIndex >= 57 && ptmIndex <= 61))
+			{
+				if (pieceToMove.index - hMovementOffsetRight == end)
+					return true;
+			}
+			
+			//down 2right
+			if ((ptmIndex >= 0 && ptmIndex <= 5) || (ptmIndex >= 8 && ptmIndex <= 13) || (ptmIndex >= 16 && ptmIndex <= 21) || (ptmIndex >= 24 && ptmIndex <= 29) || (ptmIndex >= 32 && ptmIndex <= 37) || (ptmIndex >= 40 && ptmIndex <= 45) || (ptmIndex >= 48 && ptmIndex <= 53))
+			{
+				if (pieceToMove.index + hMovementOffsetLeft == end)
+					return true;
+			}
+
+			//down 2left
+			if ((ptmIndex >= 2 && ptmIndex <= 7) || (ptmIndex >= 10 && ptmIndex <= 15) || (ptmIndex >= 18 && ptmIndex <= 23) || (ptmIndex >= 26 && ptmIndex <= 31) || (ptmIndex >= 34 && ptmIndex <= 39) || (ptmIndex >= 42 && ptmIndex <= 47) || (ptmIndex >= 50 && ptmIndex <= 55))
+			{
+				if (pieceToMove.index + hMovementOffsetRight == end)
+					return true;
+			}
+		}
+		printError("Error, black knight cannot move there");
+	}
 	return false;
 }
 
@@ -471,6 +538,7 @@ bool Movement::bishopMove(int start, int end)
 	GamePiece pieceToMove = findPBoardElement(start);
 	char endTile = m_board.board[end];
 	GamePiece pieceToTake = findPBoardElement(end);
+	int ptmIndex = pieceToMove.index;
 
 	int tilesToTravelByNine = ((end - pieceToMove.index) / 9);
 	if (tilesToTravelByNine < 0) 
@@ -512,17 +580,17 @@ bool Movement::bishopMove(int start, int end)
 		tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
 	}
 
-	if (!isTileUnderAttack(tileIndexToCheck, checkWhiteKing))
+	//White bishop
+	if (pieceToMove.isWhite && m_whiteTurn)
 	{
-		//White bishop
-		if (pieceToMove.isWhite && m_whiteTurn)
+		if (endTile == 'E' || !pieceToTake.isWhite)
 		{
-			if (endTile == 'E' || !pieceToTake.isWhite)
+			if (chooseNine)
 			{
-				if (chooseNine)
+				//SE
+				if (ptmIndex < 55 && ptmIndex != 47 && ptmIndex != 39 && ptmIndex != 31 && ptmIndex != 23 && ptmIndex != 15 && ptmIndex != 7) 
 				{
-					//SE
-					if (pieceToMove.index + (9 * tilesToTravelByNine) == end)
+					if (ptmIndex + (9 * tilesToTravelByNine) == end)
 					{
 						if (tilesToTravelByNine == 1)
 						{
@@ -545,9 +613,12 @@ bool Movement::bishopMove(int start, int end)
 							}
 						}
 					}
-
-					//NW
-					if (pieceToMove.index - (9 * tilesToTravelByNine) == end)
+				}
+				
+				//NW
+				if (ptmIndex > 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48 && ptmIndex != 56) 
+				{
+					if (ptmIndex - (9 * tilesToTravelByNine) == end)
 					{
 						if (tilesToTravelByNine == 1)
 						{
@@ -571,11 +642,14 @@ bool Movement::bishopMove(int start, int end)
 						}
 					}
 				}
+			}
 
-				if (chooseSeven)
+			if (chooseSeven)
+			{
+				//SW
+				if (ptmIndex < 56 && ptmIndex != 0 && ptmIndex != 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48) 
 				{
-					//SW
-					if (pieceToMove.index + (7 * tilesToTravelBySeven) == end)
+					if (ptmIndex + (7 * tilesToTravelBySeven) == end)
 					{
 						if (tilesToTravelBySeven == 1)
 						{
@@ -598,9 +672,12 @@ bool Movement::bishopMove(int start, int end)
 							}
 						}
 					}
+				}
 
-					//NE
-					if (pieceToMove.index - (7 * tilesToTravelBySeven) == end)
+				//NE
+				if (ptmIndex > 7 && ptmIndex != 63 && ptmIndex != 55 && ptmIndex != 47 && ptmIndex != 39 && ptmIndex != 31 && ptmIndex != 23 && ptmIndex != 15) 
+				{
+					if (ptmIndex - (7 * tilesToTravelBySeven) == end)
 					{
 						if (tilesToTravelBySeven == 1)
 						{
@@ -624,151 +701,162 @@ bool Movement::bishopMove(int start, int end)
 						}
 					}
 				}
-			}
-			
-			if (emptyDiag)
-			{
-				return true;
-			}
-			else
-			{
-				if (findPBoardElement(start).pieceType == piece::BISHOP)
-				{
-					std::cout << "Error, white bishop cannot move there" << std::endl;
-				}
-				return false;
 			}
 		}
-
-
-		//Black bishop
-		if (!pieceToMove.isWhite && !m_whiteTurn)
+			
+		if (emptyDiag)
 		{
-			if (endTile == 'E' || pieceToTake.isWhite)
+			return true;
+		}
+		else
+		{
+			if (findPBoardElement(start).pieceType == piece::BISHOP)
 			{
-				if (chooseNine)
-				{
-					//Black SE
-					if (pieceToMove.index + (9 * tilesToTravelByNine) == end)
-					{
-						if (tilesToTravelByNine == 1)
-						{
-							emptyDiag = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByNine; i++)
-							{
-								if (findPBoardElement(start + (9 * i)).pieceType == piece::EMPTY)
-								{
-									emptyDiag = true;
-								}
-								else
-								{
-									emptyDiag = false;
-									break;
-								}
-							}
-						}
-					}
-
-					//Black NW
-					if (pieceToMove.index - (9 * tilesToTravelByNine) == end)
-					{
-						if (tilesToTravelByNine == 1)
-						{
-							emptyDiag = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByNine; i++)
-							{
-								if (findPBoardElement(start - (9 * i)).pieceType == piece::EMPTY)
-								{
-									emptyDiag = true;
-								}
-								else
-								{
-									emptyDiag = false;
-									break;
-								}
-							}
-						}
-					}
-				}
-
-				if (chooseSeven)
-				{
-					//Black SW
-					if (pieceToMove.index + (7 * tilesToTravelBySeven) == end)
-					{
-						if (tilesToTravelBySeven == 1)
-						{
-							emptyDiag = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelBySeven; i++)
-							{
-								if (findPBoardElement(start + (7 * i)).pieceType == piece::EMPTY)
-								{
-									emptyDiag = true;
-								}
-								else
-								{
-									emptyDiag = false;
-									break;
-								}
-							}
-						}
-					}
-
-					//Black NE
-					if (pieceToMove.index - (7 * tilesToTravelBySeven) == end)
-					{
-						if (tilesToTravelBySeven == 1)
-						{
-							emptyDiag = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelBySeven; i++)
-							{
-								if (findPBoardElement(start - (7 * i)).pieceType == piece::EMPTY)
-								{
-									emptyDiag = true;
-								}
-								else
-								{
-									emptyDiag = false;
-									break;
-								}
-							}
-						}
-					}
-				}
+				printError("Error, white bishop cannot move there");
 			}
-
-			if (emptyDiag)
-			{
-				return true;
-			}
-
-			else
-			{
-				if (findPBoardElement(start).pieceType == piece::BISHOP)
-				{
-					std::cout << "Error, black bishop cannot move there" << std::endl;
-				}
-				return false;
-			}
+			return false;
 		}
 	}
-	std::cout << "Error, king is in check" << std::endl;
+
+
+	//Black bishop
+	if (!pieceToMove.isWhite && !m_whiteTurn)
+	{
+		if (endTile == 'E' || pieceToTake.isWhite)
+		{
+			if (chooseNine)
+			{
+				//Black SE
+				if (ptmIndex < 55 && ptmIndex != 47 && ptmIndex != 39 && ptmIndex != 31 && ptmIndex != 23 && ptmIndex != 15 && ptmIndex != 7) 
+				{
+					if (pieceToMove.index + (9 * tilesToTravelByNine) == end)
+					{
+						if (tilesToTravelByNine == 1)
+						{
+							emptyDiag = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByNine; i++)
+							{
+								if (findPBoardElement(start + (9 * i)).pieceType == piece::EMPTY)
+								{
+									emptyDiag = true;
+								}
+								else
+								{
+									emptyDiag = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				//Black NW
+				if (ptmIndex > 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48 && ptmIndex != 56) 
+				{
+					if (pieceToMove.index - (9 * tilesToTravelByNine) == end)
+					{
+						if (tilesToTravelByNine == 1)
+						{
+							emptyDiag = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByNine; i++)
+							{
+								if (findPBoardElement(start - (9 * i)).pieceType == piece::EMPTY)
+								{
+									emptyDiag = true;
+								}
+								else
+								{
+									emptyDiag = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (chooseSeven)
+			{
+				//Black SW
+				if (ptmIndex < 56 && ptmIndex != 0 && ptmIndex != 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48) 
+				{
+					if (pieceToMove.index + (7 * tilesToTravelBySeven) == end)
+					{
+						if (tilesToTravelBySeven == 1)
+						{
+							emptyDiag = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelBySeven; i++)
+							{
+								if (findPBoardElement(start + (7 * i)).pieceType == piece::EMPTY)
+								{
+									emptyDiag = true;
+								}
+								else
+								{
+									emptyDiag = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				//Black NE
+				if (ptmIndex > 7 && ptmIndex != 63 && ptmIndex != 55 && ptmIndex != 47 && ptmIndex != 39 && ptmIndex != 31 && ptmIndex != 23 && ptmIndex != 15) 
+				{
+					if (pieceToMove.index - (7 * tilesToTravelBySeven) == end)
+					{
+						if (tilesToTravelBySeven == 1)
+						{
+							emptyDiag = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelBySeven; i++)
+							{
+								if (findPBoardElement(start - (7 * i)).pieceType == piece::EMPTY)
+								{
+									emptyDiag = true;
+								}
+								else
+								{
+									emptyDiag = false;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (emptyDiag)
+		{
+			return true;
+		}
+
+		else
+		{
+			if (findPBoardElement(start).pieceType == piece::BISHOP)
+			{
+				printError("Error, black bishop cannot move there");
+			}
+			return false;
+		}
+	}
 	return false;
 }
 	
@@ -814,260 +902,256 @@ bool Movement::rookMove(int start, int end)
 		tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
 	}
 
-	if (!isTileUnderAttack(tileIndexToCheck, checkWhiteKing))
+	if (pieceToMove.isWhite && m_whiteTurn)
 	{
-		if (pieceToMove.isWhite && m_whiteTurn)
+		if (endTile == 'E' || !pieceToTake.isWhite)
 		{
-			if (endTile == 'E' || !pieceToTake.isWhite)
+			if (chooseEight)
 			{
-				if (chooseEight)
+				//S
+				if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
 				{
-					//S
-					if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
+					if (tilesToTravelByEight == 1)
 					{
-						if (tilesToTravelByEight == 1)
-						{
-							emptyVertical = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByEight; i++)
-							{
-								if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
-								{
-									emptyVertical = true;
-								}
-								else
-								{
-									emptyVertical = false;
-									break;
-								}
-							}
-						}
+						emptyVertical = true;
 					}
 
-					//N
-					if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
+					else
 					{
-						if (tilesToTravelByEight == 1)
+						for (int i = 1; i < tilesToTravelByEight; i++)
 						{
-							emptyVertical = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByEight; i++)
+							if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
 							{
-								if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
-								{
-									emptyVertical = true;
-								}
-								else
-								{
-									emptyVertical = false;
-									break;
-								}
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
 							}
 						}
 					}
 				}
 
-				else
+				//N
+				if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
 				{
-					//E
-					if (pieceToMove.index + tilesToTravelByOne == end)
+					if (tilesToTravelByEight == 1)
 					{
-						if (tilesToTravelByOne == 1)
-						{
-							emptyHorizontal = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByOne; i++)
-							{
-								if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
-								{
-									emptyHorizontal = true;
-								}
-								else
-								{
-									emptyHorizontal = false;
-									break;
-								}
-							}
-						}
+						emptyVertical = true;
 					}
 
-					//W
-					if (pieceToMove.index - tilesToTravelByOne == end)
+					else
 					{
-						if (tilesToTravelByOne == 1)
+						for (int i = 1; i < tilesToTravelByEight; i++)
 						{
-							emptyHorizontal = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByOne; i++)
+							if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
 							{
-								if (findPBoardElement(start - i).pieceType == piece::EMPTY)
-								{
-									emptyHorizontal = true;
-								}
-								else
-								{
-									emptyHorizontal = false;
-									break;
-								}
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
 							}
 						}
 					}
 				}
 			}
-			
-			if (emptyHorizontal || emptyVertical)
-			{
-				return true;
-			}
+
 			else
 			{
-				if (findPBoardElement(start).pieceType == piece::ROOK)
+				//E
+				if (pieceToMove.index + tilesToTravelByOne == end)
 				{
-					std::cout << "Error, white rook can't move there" << std::endl;
+					if (tilesToTravelByOne == 1)
+					{
+						emptyHorizontal = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
+					}
 				}
-				return false;
+
+				//W
+				if (pieceToMove.index - tilesToTravelByOne == end)
+				{
+					if (tilesToTravelByOne == 1)
+					{
+						emptyHorizontal = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
+					}
+				}
 			}
 		}
-
-		//Black Rook
-		if (!pieceToMove.isWhite && !m_whiteTurn)
+			
+		if (emptyHorizontal || emptyVertical)
 		{
-			if (endTile == 'E' || pieceToTake.isWhite)
+			return true;
+		}
+		else
+		{
+			if (findPBoardElement(start).pieceType == piece::ROOK)
 			{
-				if (chooseEight)
-				{
-					//S
-					if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
-					{
-						if (tilesToTravelByEight == 1)
-						{
-							emptyVertical = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByEight; i++)
-							{
-								if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
-								{
-									emptyVertical = true;
-								}
-								else
-								{
-									emptyVertical = false;
-									break;
-								}
-							}
-						}
-					}
-
-					//N
-					if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
-					{
-						if (tilesToTravelByEight == 1)
-						{
-							emptyVertical = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByEight; i++)
-							{
-								if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
-								{
-									emptyVertical = true;
-								}
-								else
-								{
-									emptyVertical = false;
-									break;
-								}
-							}
-						}
-					}
-				}
-
-				else
-				{
-					//E
-					if (pieceToMove.index + tilesToTravelByOne == end)
-					{
-						if (tilesToTravelByOne == 1)
-						{
-							emptyHorizontal = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByOne; i++)
-							{
-								if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
-								{
-									emptyHorizontal = true;
-								}
-								else
-								{
-									emptyHorizontal = false;
-									break;
-								}
-							}
-						}
-					}
-
-					//W
-					if (pieceToMove.index - tilesToTravelByOne == end)
-					{
-						if (tilesToTravelByOne == 1)
-						{
-							emptyHorizontal = true;
-						}
-
-						else
-						{
-							for (int i = 1; i < tilesToTravelByOne; i++)
-							{
-								if (findPBoardElement(start - i).pieceType == piece::EMPTY)
-								{
-									emptyHorizontal = true;
-								}
-								else
-								{
-									emptyHorizontal = false;
-									break;
-								}
-							}
-						}
-					}
-				}
+				printError("Error, white rook can't move there");
 			}
-
-			if (emptyHorizontal || emptyVertical)
-			{
-				return true;
-			}
-			else
-			{
-				if (findPBoardElement(start).pieceType == piece::ROOK) 
-				{
-					std::cout << "Error, black rook can't move there" << std::endl;
-				}
-				return false;
-			}
+			return false;
 		}
 	}
-	std::cout << "Error, king in check" << std::endl;
+
+	//Black Rook
+	if (!pieceToMove.isWhite && !m_whiteTurn)
+	{
+		if (endTile == 'E' || pieceToTake.isWhite)
+		{
+			if (chooseEight)
+			{
+				//S
+				if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
+				{
+					if (tilesToTravelByEight == 1)
+					{
+						emptyVertical = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByEight; i++)
+						{
+							if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+							{
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//N
+				if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
+				{
+					if (tilesToTravelByEight == 1)
+					{
+						emptyVertical = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByEight; i++)
+						{
+							if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+							{
+								emptyVertical = true;
+							}
+							else
+							{
+								emptyVertical = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			else
+			{
+				//E
+				if (pieceToMove.index + tilesToTravelByOne == end)
+				{
+					if (tilesToTravelByOne == 1)
+					{
+						emptyHorizontal = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
+					}
+				}
+
+				//W
+				if (pieceToMove.index - tilesToTravelByOne == end)
+				{
+					if (tilesToTravelByOne == 1)
+					{
+						emptyHorizontal = true;
+					}
+
+					else
+					{
+						for (int i = 1; i < tilesToTravelByOne; i++)
+						{
+							if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+							{
+								emptyHorizontal = true;
+							}
+							else
+							{
+								emptyHorizontal = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (emptyHorizontal || emptyVertical)
+		{
+			return true;
+		}
+		else
+		{
+			if (findPBoardElement(start).pieceType == piece::ROOK) 
+			{
+				printError("Error, black rook can't move there");
+			}
+			return false;
+		}
+	}
 	return false;
 }
 
@@ -1089,65 +1173,61 @@ bool Movement::queenMove(int start, int end)
 		tileIndexToCheck = m_board.pieceBoard[4].index; //Black King Index
 	}
 
-	if (!isTileUnderAttack(tileIndexToCheck, checkWhiteKing)) 
+	//White Queen
+	if (pieceToMove.isWhite && m_whiteTurn) 
 	{
-		//White Queen
-		if (pieceToMove.isWhite && m_whiteTurn) 
+		if (((end - pieceToMove.index) % 9) == 0 || ((end - pieceToMove.index) % 7) == 0)
 		{
-			if (((end - pieceToMove.index) % 9) == 0 || ((end - pieceToMove.index) % 7) == 0)
+			if (bishopMove(start, end))
 			{
-				if (bishopMove(start, end))
-				{
-					return true;
-				}
-
-				//needed for unique cases such as 40 to 47 where bishop would get flagged but it really is moving as a rook
-				else if (rookMove(start, end))
-				{
-					return true;
-				}
+				return true;
 			}
 
-			else
+			//needed for unique cases such as 40 to 47 where bishop would get flagged but it really is moving as a rook
+			else if (rookMove(start, end))
 			{
-				if (rookMove(start, end))
-				{
-					return true;
-				}
+				return true;
 			}
-			std::cout << "Error, white queen cannot move there" << std::endl;
-			return false;
 		}
 
-		//Black Queen
-		if (!pieceToMove.isWhite && !m_whiteTurn)
+		else
 		{
-			if (((end - pieceToMove.index) % 9) == 0 || ((end - pieceToMove.index) % 7) == 0)
+			if (rookMove(start, end))
 			{
-				if (bishopMove(start, end))
-				{
-					return true;
-				}
-
-				//needed for unique cases such as 40 to 47 where bishop would get flagged but it really is moving as a rook
-				else if (rookMove(start, end))
-				{
-					return true;
-				}
+				return true;
 			}
-
-			else
-			{
-				if (rookMove(start, end))
-				{
-					return true;
-				}
-			}
-			std::cout << "Error, black queen cannot move there" << std::endl;
-			return false;
 		}
+		printError("Error, white queen cannot move there");
+		return false;
 	}
-	std::cout << "Error, your king is in check" << std::endl;
+
+	//Black Queen
+	if (!pieceToMove.isWhite && !m_whiteTurn)
+	{
+		if (((end - pieceToMove.index) % 9) == 0 || ((end - pieceToMove.index) % 7) == 0)
+		{
+			if (bishopMove(start, end))
+			{
+				return true;
+			}
+
+			//needed for unique cases such as 40 to 47 where bishop would get flagged but it really is moving as a rook
+			else if (rookMove(start, end))
+			{
+				return true;
+			}
+		}
+
+		else
+		{
+			if (rookMove(start, end))
+			{
+				return true;
+			}
+		}
+		printError("Error, black queen cannot move there");
+		return false;
+	}
 	return false;
 }
 
@@ -1375,7 +1455,7 @@ bool Movement::kingMove(int start, int end)
 			}
 		}
 	}
-	std::cout << "King cant move there right now" << std::endl;
+	printError("King cant move there right now");
 	return false;
 }
 
@@ -1401,22 +1481,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempNorthIndex - 8).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd) 
+					for (int i = 0; i < tilesToAdd; i++) 
 					{
 						m_dangerTiles.push_back(tempNorthIndex - 8);
 						tempNorthIndex = tempNorthIndex + 8;
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempNorthIndex - 8).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++) 
 					{
 						m_dangerTiles.push_back(tempNorthIndex - 8); //match
 						tempNorthIndex = tempNorthIndex + 8; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -1462,22 +1540,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempSouthIndex + 8).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempSouthIndex + 8); //match
 						tempSouthIndex = tempSouthIndex - 8; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempSouthIndex + 8).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempSouthIndex + 8); //match
 						tempSouthIndex = tempSouthIndex - 8; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -1523,22 +1599,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempEastIndex + 1).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempEastIndex + 1); //match
 						tempEastIndex = tempEastIndex - 1; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempEastIndex + 1).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++) 
 					{
 						m_dangerTiles.push_back(tempEastIndex + 1); //match
 						tempEastIndex = tempEastIndex - 1; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -1584,22 +1658,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempWestIndex - 1).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++) 
 					{
 						m_dangerTiles.push_back(tempWestIndex - 1); //match
 						tempWestIndex = tempWestIndex + 1; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempWestIndex - 1).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++) 
 					{
 						m_dangerTiles.push_back(tempWestIndex - 1); //match
 						tempWestIndex = tempWestIndex + 1; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -1644,7 +1716,7 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 					break;
 				}
 
-				if (!findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1)
+				if (!findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1 && findPBoardElement(pawnCheck).pieceType == piece::PAWN)
 				{
 					m_dangerTiles.push_back(pawnCheck);
 					return true;
@@ -1656,22 +1728,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempNorthWestIndex - 9).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++) 
 						{
 							m_dangerTiles.push_back(tempNorthWestIndex - 9); //match
 							tempNorthWestIndex = tempNorthWestIndex + 9; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempNorthWestIndex - 9).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++) 
 						{
 							m_dangerTiles.push_back(tempNorthWestIndex - 9); //match
 							tempNorthWestIndex = tempNorthWestIndex + 9; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -1717,7 +1787,7 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 					break;
 				}
 
-				if (!findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1)
+				if (!findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1 && findPBoardElement(pawnCheck).pieceType == piece::PAWN)
 				{
 					m_dangerTiles.push_back(pawnCheck);
 					return true;
@@ -1729,22 +1799,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempNorthEastIndex - 7).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempNorthEastIndex - 7); //match
 							tempNorthEastIndex = tempNorthEastIndex + 7; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempNorthEastIndex - 7).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++) 
 						{
 							m_dangerTiles.push_back(tempNorthEastIndex - 7); //match
 							tempNorthEastIndex = tempNorthEastIndex + 7; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -1794,22 +1862,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempSouthWestIndex + 7).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthWestIndex + 7); //match
 							tempSouthWestIndex = tempSouthWestIndex - 7; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempSouthWestIndex + 7).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++) 
 						{
 							m_dangerTiles.push_back(tempSouthWestIndex + 7); //match
 							tempSouthWestIndex = tempSouthWestIndex - 7; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -1860,22 +1926,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempSouthEastIndex + 9).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++) 
 						{
 							m_dangerTiles.push_back(tempSouthEastIndex + 9); //match
 							tempSouthEastIndex = tempSouthEastIndex - 9; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempSouthEastIndex + 9).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthEastIndex + 9); //match
 							tempSouthEastIndex = tempSouthEastIndex - 9; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -1982,7 +2046,7 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 	}
 
 	//black turn
-	else if (!isWhiteTurn)
+	else
 	{
 		//Black North
 		int tempNorthIndex = pBoardIndex;
@@ -2001,22 +2065,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempNorthIndex - 8).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempNorthIndex - 8); //match
 						tempNorthIndex = tempNorthIndex + 8; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempNorthIndex - 8).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempNorthIndex - 8); //match
 						tempNorthIndex = tempNorthIndex + 8; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -2062,22 +2124,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempSouthIndex + 8).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempSouthIndex + 8); //match
 						tempSouthIndex = tempSouthIndex - 8; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempSouthIndex + 8).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempSouthIndex + 8); //match
 						tempSouthIndex = tempSouthIndex - 8; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -2123,24 +2183,21 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempEastIndex + 1).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempEastIndex + 1); //match
 						tempEastIndex = tempEastIndex - 1; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempEastIndex + 1).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempEastIndex + 1); //match
 						tempEastIndex = tempEastIndex - 1; //opposite
-						i++;
 					}
-					return true;
 				}
 
 				if (findPBoardElement(tempEastIndex + 1).pieceType == piece::PAWN)
@@ -2184,22 +2241,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 				if (findPBoardElement(tempWestIndex - 1).pieceType == piece::ROOK)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempWestIndex - 1); //match
 						tempWestIndex = tempWestIndex + 1; //opposite
-						i++;
 					}
 					return true;
 				}
 
 				if (findPBoardElement(tempWestIndex - 1).pieceType == piece::QUEEN)
 				{
-					while (int i = 0 < tilesToAdd)
+					for (int i = 0; i < tilesToAdd; i++)
 					{
 						m_dangerTiles.push_back(tempWestIndex - 1); //match
 						tempWestIndex = tempWestIndex + 1; //opposite
-						i++;
 					}
 					return true;
 				}
@@ -2248,22 +2303,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempNorthWestIndex - 9).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempNorthWestIndex - 9); //match
 							tempNorthWestIndex = tempNorthWestIndex + 9; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempNorthWestIndex - 9).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempNorthWestIndex - 9); //match
 							tempNorthWestIndex = tempNorthWestIndex + 9; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -2313,22 +2366,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempNorthEastIndex - 7).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempNorthEastIndex - 7); //match
 							tempNorthEastIndex = tempNorthEastIndex + 7; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempNorthEastIndex - 7).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempNorthEastIndex - 7); //match
 							tempNorthEastIndex = tempNorthEastIndex + 7; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -2367,7 +2418,7 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 			//covers the bounds checking for left col and bottom row
 			while (tempSouthWestIndex + 7 < 64 && tempSouthWestIndex + 7 != 63 && tempSouthWestIndex + 7 != 55 && tempSouthWestIndex + 7 != 47 && tempSouthWestIndex + 7 != 39 && tempSouthWestIndex + 7 != 31 && tempSouthWestIndex + 7 != 23 && tempSouthWestIndex + 7 != 15 && tempSouthWestIndex + 7 != 7)
 			{
-				if (findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1)
+				if (findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1 && findPBoardElement(pawnCheck).pieceType == piece::PAWN)
 				{
 					m_dangerTiles.push_back(pawnCheck);
 					return true;
@@ -2385,22 +2436,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempSouthWestIndex + 7).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthWestIndex + 7); //match
 							tempSouthWestIndex = tempSouthWestIndex - 7; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempSouthWestIndex + 7).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthWestIndex + 7); //match
 							tempSouthWestIndex = tempSouthWestIndex - 7; //opposite
-							i++;
 						}
 						return true;
 					}
@@ -2439,7 +2488,7 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 			//covers the bounds checking for right col and bottom row
 			while (tempSouthEastIndex + 9 < 64 && tempSouthEastIndex + 9 != 56 && tempSouthEastIndex + 9 != 48 && tempSouthEastIndex + 9 != 40 && tempSouthEastIndex + 9 != 32 && tempSouthEastIndex + 9 != 24 && tempSouthEastIndex + 9 != 16)
 			{
-				if (findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1)
+				if (findPBoardElement(pawnCheck).isWhite && findPBoardElement(pawnCheck).index != -1 && findPBoardElement(pawnCheck).pieceType == piece::PAWN)
 				{
 					m_dangerTiles.push_back(pawnCheck);
 					return true;
@@ -2457,22 +2506,20 @@ bool Movement::isTileUnderAttack(int pBoardIndex, bool isWhiteTurn)
 
 					if (findPBoardElement(tempSouthEastIndex + 9).pieceType == piece::BISHOP)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthEastIndex + 9); //match
 							tempSouthEastIndex = tempSouthEastIndex - 9; //opposite
-							i++;
 						}
 						return true;
 					}
 
 					if (findPBoardElement(tempSouthEastIndex + 9).pieceType == piece::QUEEN)
 					{
-						while (int i = 0 < tilesToAdd)
+						for (int i = 0; i < tilesToAdd; i++)
 						{
 							m_dangerTiles.push_back(tempSouthEastIndex + 9); //match
 							tempSouthEastIndex = tempSouthEastIndex - 9; //opposite
-							i++;
 						}
 						return true;
 					}

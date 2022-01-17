@@ -19,6 +19,7 @@ void GameBoard::updateBoard(int pStart, int start, int pEnd, int end)
 	if (board[end] != 'E')
 	{
 		pieceBoard[pEnd].index = -1;
+		pieceBoard[pEnd].pieceType = piece::EMPTY;
 	}
 
 	pieceBoard[pStart].index = end;

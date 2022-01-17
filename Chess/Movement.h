@@ -35,8 +35,23 @@ class Movement
 			return copy;
 		}
 
+		void setErrorEnable(bool shouldDisplay) { m_errorEnable = shouldDisplay; }
+		
+		void printError(std::string& errorMessage) 
+		{
+			if (m_errorEnable)
+				std::cout << errorMessage << std::endl;
+		}
+
+		void printError(std::string&& errorMessage)
+		{
+			if (m_errorEnable)
+				std::cout << errorMessage << std::endl;
+		}
+
 private:
 	GameBoard& m_board;
 	bool m_whiteTurn = true;
 	std::vector<int> m_dangerTiles;
+	bool m_errorEnable;
 };
