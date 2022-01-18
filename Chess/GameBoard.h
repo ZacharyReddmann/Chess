@@ -2,6 +2,7 @@
 #include <iostream>
 #include <array>
 #include "GamePiece.h"
+#include <vector>
 
 class GameBoard {
 	public:
@@ -19,8 +20,7 @@ class GameBoard {
 		};
 
 		//keep track where the pieces are
-		std::array<GamePiece, 32> pieceBoard;
-		
+		std::array<GamePiece, 32> pieceBoard;		
 
 		void updateBoard(int pStart, int start, int pEnd, int end);
 		void printBoard();

@@ -1,9 +1,6 @@
 #include "Movement.h"
 #include "GamePiece.h"
 
-
-//ADD king condition to tile under attack
-
 //Find the correct index for pieceBoard
 GamePiece Movement::findPBoardElement(int startTile) 
 {
@@ -202,12 +199,11 @@ bool Movement::isValidMove(int start, int end)
 	return isValid;
 }
 
-//FIX ME, NEED TO FIND A WAY TO UPDATE PIECE BOARD PIECE, MAYBE USE OTHER FUNCTION AT TOP
-//Might be fixed - NOT FIXED
 bool Movement::promotion(int start)
 {
-	if ((findPBoardElement(start).pieceType == piece::PAWN && findPBoardElement(start).index < 8) ||
-		(findPBoardElement(start).pieceType == piece::PAWN && findPBoardElement(start).index < 64))
+	int pIndex = getPBoardIndexofElement(start);
+	if ((findPBoardElement(pIndex).pieceType == piece::PAWN && findPBoardElement(pIndex).index < 8) ||
+		(findPBoardElement(pIndex).pieceType == piece::PAWN && (findPBoardElement(pIndex).index > 55 && findPBoardElement(start).index < 64)))
 	{
 		std::string userInput;
 		std::cout << "Please enter Queen, Rook, Bishop, Knight to promote your pawn respectively" << std::endl;
@@ -221,6 +217,7 @@ bool Movement::promotion(int start)
 		if (userInput == "QUEEN")
 		{
 			m_board.pieceBoard[getPBoardIndexofElement(start)].pieceType = piece::QUEEN;
+			//UPDATE BOARD TO REPRESENT PIECE
 			return true;
 		}
 		else if (userInput == "ROOK")
@@ -288,17 +285,23 @@ bool Movement::pawnMove(int start, int end)
 		GamePiece pieceToTake = findPBoardElement(end);
 		if (pieceToTake.index != -1 && !pieceToTake.isWhite && endTile != 'E')
 		{
-			//take right check
-			if (pieceToMove.index - takingOffsetLeft == end)
-				return true;
-
-			//take left check
-			if (pieceToMove.index - takingOffsetRight == end)
-				return true;
+			//take right check - 7
+			if (end != 56 && end != 48 && end != 40 && end != 32 && end != 24 && end != 16 && end != 8 && end != 0)
+			{
+				if (pieceToMove.index - takingOffsetLeft == end)
+					return true;
+			}
+ 			
+			//take left check - 9
+			if (end != 63 && end != 55 && end != 47 && end != 39 && end != 31 && end != 23 && end != 15 && end != 7) 
+			{
+				if (pieceToMove.index - takingOffsetRight == end)
+					return true;
+			}
 		}
 
 		//En Passant
-		if (pieceToMove.index >= 24 || pieceToMove.index <= 31)
+		if (pieceToMove.index >= 24 && pieceToMove.index <= 31)
 		{
 			if (!pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
 			{
@@ -339,17 +342,21 @@ bool Movement::pawnMove(int start, int end)
 		GamePiece pieceToTake = findPBoardElement(end);
 		if (pieceToTake.index != -1 && pieceToTake.isWhite && endTile != 'E')
 		{
-			//take left check
+			//take left check + 7
+			if (end != 63 && end != 55 && end != 47 && end != 39 && end != 31 && end != 23 && end != 15 && end != 7)
 			if (pieceToMove.index + takingOffsetLeft == end)
 				return true;
 
-			//take right check
-			if (pieceToMove.index + takingOffsetRight == end)
-				return true;
+			//take right check + 9
+			if (end != 56 && end != 48 && end != 40 && end != 32 && end != 24 && end != 16 && end != 8) 
+			{
+				if (pieceToMove.index + takingOffsetRight == end)
+					return true;
+			}
 		}
 
 		//En Passant
-		if (pieceToMove.index >= 32 || pieceToMove.index <= 39)
+		if (pieceToMove.index >= 32 && pieceToMove.index <= 39)
 		{
 			if (pieceToTake.isWhite && pieceToTake.hasDoubleMoved)
 			{
@@ -663,6 +670,7 @@ bool Movement::bishopMove(int start, int end)
 								if (findPBoardElement(start + (7 * i)).pieceType == piece::EMPTY)
 								{
 									emptyDiag = true;
+
 								}
 								else
 								{
@@ -866,6 +874,7 @@ bool Movement::rookMove(int start, int end)
 	GamePiece pieceToMove = findPBoardElement(start);
 	char endTile = m_board.board[end];
 	GamePiece pieceToTake = findPBoardElement(end);
+	int ptmIndex = pieceToMove.index;
 
 	int tilesToTravelByEight = ((end - pieceToMove.index) / 8);
 	if (tilesToTravelByEight < 0)
@@ -909,50 +918,57 @@ bool Movement::rookMove(int start, int end)
 			if (chooseEight)
 			{
 				//S
-				if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
+				if (ptmIndex < 56) 
 				{
-					if (tilesToTravelByEight == 1)
+					if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
 					{
-						emptyVertical = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByEight; i++)
+						if (tilesToTravelByEight == 1)
 						{
-							if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+							emptyVertical = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByEight; i++)
 							{
-								emptyVertical = true;
-							}
-							else
-							{
-								emptyVertical = false;
-								break;
+								if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+								{
+									emptyVertical = true;
+								}
+								else
+								{
+									emptyVertical = false;
+									break;
+								}
 							}
 						}
 					}
 				}
+				
 
 				//N
-				if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
+				if (ptmIndex > 7) 
 				{
-					if (tilesToTravelByEight == 1)
+					if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
 					{
-						emptyVertical = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByEight; i++)
+						if (tilesToTravelByEight == 1)
 						{
-							if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+							emptyVertical = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByEight; i++)
 							{
-								emptyVertical = true;
-							}
-							else
-							{
-								emptyVertical = false;
-								break;
+								if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+								{
+									emptyVertical = true;
+								}
+								else
+								{
+									emptyVertical = false;
+									break;
+								}
 							}
 						}
 					}
@@ -962,50 +978,57 @@ bool Movement::rookMove(int start, int end)
 			else
 			{
 				//E
-				if (pieceToMove.index + tilesToTravelByOne == end)
+				if (ptmIndex != 7 && ptmIndex != 15 && ptmIndex != 23 && ptmIndex != 31 && ptmIndex != 39 && ptmIndex != 47 && ptmIndex != 55 && ptmIndex != 63) 
 				{
-					if (tilesToTravelByOne == 1)
+					if (pieceToMove.index + tilesToTravelByOne == end)
 					{
-						emptyHorizontal = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByOne; i++)
+						if (tilesToTravelByOne == 1)
 						{
-							if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+							emptyHorizontal = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByOne; i++)
 							{
-								emptyHorizontal = true;
-							}
-							else
-							{
-								emptyHorizontal = false;
-								break;
+								if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+								{
+									emptyHorizontal = true;
+								}
+								else
+								{
+									emptyHorizontal = false;
+									break;
+								}
 							}
 						}
 					}
+
 				}
-
+				
 				//W
-				if (pieceToMove.index - tilesToTravelByOne == end)
+				if (ptmIndex != 0 && ptmIndex != 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48 && ptmIndex != 56)
 				{
-					if (tilesToTravelByOne == 1)
+					if (pieceToMove.index - tilesToTravelByOne == end)
 					{
-						emptyHorizontal = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByOne; i++)
+						if (tilesToTravelByOne == 1)
 						{
-							if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+							emptyHorizontal = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByOne; i++)
 							{
-								emptyHorizontal = true;
-							}
-							else
-							{
-								emptyHorizontal = false;
-								break;
+								if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+								{
+									emptyHorizontal = true;
+								}
+								else
+								{
+									emptyHorizontal = false;
+									break;
+								}
 							}
 						}
 					}
@@ -1035,50 +1058,56 @@ bool Movement::rookMove(int start, int end)
 			if (chooseEight)
 			{
 				//S
-				if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
+				if (ptmIndex < 56) 
 				{
-					if (tilesToTravelByEight == 1)
+					if (pieceToMove.index + (8 * tilesToTravelByEight) == end)
 					{
-						emptyVertical = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByEight; i++)
+						if (tilesToTravelByEight == 1)
 						{
-							if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+							emptyVertical = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByEight; i++)
 							{
-								emptyVertical = true;
-							}
-							else
-							{
-								emptyVertical = false;
-								break;
+								if (findPBoardElement(start + (8 * i)).pieceType == piece::EMPTY)
+								{
+									emptyVertical = true;
+								}
+								else
+								{
+									emptyVertical = false;
+									break;
+								}
 							}
 						}
 					}
 				}
 
 				//N
-				if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
+				if (ptmIndex > 7) 
 				{
-					if (tilesToTravelByEight == 1)
+					if (pieceToMove.index - (8 * tilesToTravelByEight) == end)
 					{
-						emptyVertical = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByEight; i++)
+						if (tilesToTravelByEight == 1)
 						{
-							if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+							emptyVertical = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByEight; i++)
 							{
-								emptyVertical = true;
-							}
-							else
-							{
-								emptyVertical = false;
-								break;
+								if (findPBoardElement(start - (8 * i)).pieceType == piece::EMPTY)
+								{
+									emptyVertical = true;
+								}
+								else
+								{
+									emptyVertical = false;
+									break;
+								}
 							}
 						}
 					}
@@ -1088,50 +1117,56 @@ bool Movement::rookMove(int start, int end)
 			else
 			{
 				//E
-				if (pieceToMove.index + tilesToTravelByOne == end)
+				if (ptmIndex != 7 && ptmIndex != 15 && ptmIndex != 23 && ptmIndex != 31 && ptmIndex != 39 && ptmIndex != 47 && ptmIndex != 55 && ptmIndex != 63) 
 				{
-					if (tilesToTravelByOne == 1)
+					if (pieceToMove.index + tilesToTravelByOne == end)
 					{
-						emptyHorizontal = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByOne; i++)
+						if (tilesToTravelByOne == 1)
 						{
-							if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+							emptyHorizontal = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByOne; i++)
 							{
-								emptyHorizontal = true;
-							}
-							else
-							{
-								emptyHorizontal = false;
-								break;
+								if (findPBoardElement(start + i).pieceType == piece::EMPTY) //Replace with just + i possibly
+								{
+									emptyHorizontal = true;
+								}
+								else
+								{
+									emptyHorizontal = false;
+									break;
+								}
 							}
 						}
 					}
 				}
-
+				
 				//W
-				if (pieceToMove.index - tilesToTravelByOne == end)
+				if (ptmIndex != 0 && ptmIndex != 8 && ptmIndex != 16 && ptmIndex != 24 && ptmIndex != 32 && ptmIndex != 40 && ptmIndex != 48 && ptmIndex != 56) 
 				{
-					if (tilesToTravelByOne == 1)
+					if (pieceToMove.index - tilesToTravelByOne == end)
 					{
-						emptyHorizontal = true;
-					}
-
-					else
-					{
-						for (int i = 1; i < tilesToTravelByOne; i++)
+						if (tilesToTravelByOne == 1)
 						{
-							if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+							emptyHorizontal = true;
+						}
+
+						else
+						{
+							for (int i = 1; i < tilesToTravelByOne; i++)
 							{
-								emptyHorizontal = true;
-							}
-							else
-							{
-								emptyHorizontal = false;
-								break;
+								if (findPBoardElement(start - i).pieceType == piece::EMPTY)
+								{
+									emptyHorizontal = true;
+								}
+								else
+								{
+									emptyHorizontal = false;
+									break;
+								}
 							}
 						}
 					}
@@ -1250,36 +1285,92 @@ bool Movement::kingMove(int start, int end)
 		if (endTile == 'E' || !pieceToTake.isWhite) 
 		{
 			//S
-			if (pieceToMove.index + verticalOffset == end)
-				return true;
-			
+			if (pieceToMove.index + verticalOffset < 64) 
+			{
+				if (!isTileUnderAttack(pieceToMove.index + verticalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + verticalOffset == end)
+						return true;
+				}
+			}
+		
+		
 			//E
-			if (pieceToMove.index + horizontalOffset == end)
-				return true;
+			if (pieceToMove.index + horizontalOffset < 64) 
+			{
+				if (!isTileUnderAttack(pieceToMove.index + horizontalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + horizontalOffset == end)
+						return true;
+
+				}
+			}
 			
+		
 			//SE
-			if (pieceToMove.index + diagNwSeOffset == end)
-				return true;
+			if (pieceToMove.index + diagNwSeOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + diagNwSeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + diagNwSeOffset == end)
+						return true;
+				}
+			}
+			
+			
 			
 			//SW
-			if (pieceToMove.index + diagSwNeOffset == end)
-				return true;
+			if (pieceToMove.index + diagSwNeOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + diagSwNeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + diagSwNeOffset == end)
+						return true;
+				}
+			}
 
 			//N
-			if (pieceToMove.index - verticalOffset == end)
-				return true;
-
+			if (pieceToMove.index - verticalOffset >= 0) 
+			{
+				if (!isTileUnderAttack(pieceToMove.index - verticalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - verticalOffset == end)
+						return true;
+				}
+			}
+			
+		
 			//W
-			if (pieceToMove.index - horizontalOffset == end)
-				return true;
+			if (pieceToMove.index - horizontalOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - horizontalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - horizontalOffset == end)
+						return true;
+				}
+			}
+		
+		
 
 			//NW
-			if (pieceToMove.index - diagNwSeOffset == end)
-				return true;
-
+			if (pieceToMove.index - diagNwSeOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - diagNwSeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - diagNwSeOffset == end)
+						return true;
+				}
+			}
+			
 			//NE
-			if (pieceToMove.index - diagSwNeOffset == end)
-				return true;
+			if (pieceToMove.index - diagSwNeOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - diagSwNeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - diagSwNeOffset == end)
+						return true;
+				}
+			}
 		}
 	}
 
@@ -1289,36 +1380,92 @@ bool Movement::kingMove(int start, int end)
 		if (endTile == 'E' || pieceToTake.isWhite)
 		{
 			//S
-			if (pieceToMove.index + verticalOffset == end)
-				return true;
+			if (pieceToMove.index + verticalOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + verticalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + verticalOffset == end)
+						return true;
+				}
+			}
+
 
 			//E
-			if (pieceToMove.index + horizontalOffset == end)
-				return true;
+			if (pieceToMove.index + horizontalOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + horizontalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + horizontalOffset == end)
+						return true;
+
+				}
+			}
+
 
 			//SE
-			if (pieceToMove.index + diagNwSeOffset == end)
-				return true;
+			if (pieceToMove.index + diagNwSeOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + diagNwSeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + diagNwSeOffset == end)
+						return true;
+				}
+			}
+
+
 
 			//SW
-			if (pieceToMove.index + diagSwNeOffset == end)
-				return true;
+			if (pieceToMove.index + diagSwNeOffset < 64)
+			{
+				if (!isTileUnderAttack(pieceToMove.index + diagSwNeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index + diagSwNeOffset == end)
+						return true;
+				}
+			}
 
 			//N
-			if (pieceToMove.index - verticalOffset == end)
-				return true;
+			if (pieceToMove.index - verticalOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - verticalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - verticalOffset == end)
+						return true;
+				}
+			}
+
 
 			//W
-			if (pieceToMove.index - horizontalOffset == end)
-				return true;
+			if (pieceToMove.index - horizontalOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - horizontalOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - horizontalOffset == end)
+						return true;
+				}
+			}
+
+
 
 			//NW
-			if (pieceToMove.index - diagNwSeOffset == end)
-				return true;
+			if (pieceToMove.index - diagNwSeOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - diagNwSeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - diagNwSeOffset == end)
+						return true;
+				}
+			}
 
 			//NE
-			if (pieceToMove.index - diagSwNeOffset == end)
-				return true;
+			if (pieceToMove.index - diagSwNeOffset >= 0)
+			{
+				if (!isTileUnderAttack(pieceToMove.index - diagSwNeOffset, m_whiteTurn))
+				{
+					if (pieceToMove.index - diagSwNeOffset == end)
+						return true;
+				}
+			}
 		}
 	}
 

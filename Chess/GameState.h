@@ -9,17 +9,11 @@ class GameState
 		
 
 		bool isCheckmate();
-		bool isStalemate();
-		bool isThreeMoveRepitition();
-
-		
 		void swapTurn();
 		void runGame();
 		
 		bool m_isCheckmate;
 		bool m_currentTurn = true;
-
-		
 
 		GameBoard boardInstance;
 		Movement moves;
